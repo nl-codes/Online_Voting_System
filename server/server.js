@@ -21,3 +21,24 @@ const db = mysql.createConnection({
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+app.post("/user_register", (req, res) => {
+    let sql =
+        "INSERT INTO `user_details`(`first_name`, `last_name`, `email`, `pass_word`, `dob`, `photo_url`) VALUES (?,?,?,?,?,?);";
+    const values = [
+        req.body.first_name,
+        req.body.last_name,
+        req.body.email,
+        req.body.pass_word,
+        req.body.dob,
+        req.body.photo_url,
+    ];
+
+    db.query(sql, values, (err, result) => {
+        if (err)
+            return res.json({
+                message: "Something unexpected has occured : " + err,
+            });
+        return res.json({ success: "User registered successfully" });
+    });
+});
