@@ -1,8 +1,12 @@
 import React from 'react'
 
 const HomePage = () => {
+
     return (
-        <div>HomePage</div>
+        <h1 class="text-3xl font-bold underline bg-sky-600">
+            Hello world!
+        </h1>
+
     )
 }
 

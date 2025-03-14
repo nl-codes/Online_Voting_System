@@ -59,17 +59,23 @@ app.post("/user_login", (req, res) => {
 
     db.query(sql, [email], async (err, result) => {
         if (err)
-            return res.status(500).json({ error: "Database error : " + err });
+            return res
+                .status(500)
+                .json({ error: "Database error : " + err, success: false });
 
         if (result.length === 0) {
-            return res.status(401).json({ error: "Invalid email or password" });
+            return res
+                .status(401)
+                .json({ error: "Invalid email or password", success: false });
         }
 
         const user = result[0];
 
         const isMatch = await bcrypt.compare(pass_word, user.pass_word);
         if (!isMatch) {
-            return res.status(401).json({ error: "Invalid email or password" });
+            return res
+                .status(401)
+                .json({ error: "Invalid email or password", success: false });
         }
 
         // Send user data except password
@@ -80,7 +86,33 @@ app.post("/user_login", (req, res) => {
             email: user.email,
             dob: user.dob,
             photo_url: user.photo_url,
-            success: "Login successful",
+            success: true,
         });
     });
 });
+
+app.get("/user_exists/:email", (req, res) => {
+    let sql = "SELECT * FROM `user_details` WHERE `email` = ?;";
+    db.query(sql, [req.params.email], (err, result) => {
+        if (err)
+            return res.json({
+                message: "Something unexpected has occured : " + err,
+            });
+        return res.json({ exists: result.length > 0 });
+    });
+});
+
+// app.get("/test", (req, res) => {
+//     res.json({
+//         message: "This text was sent to arjabi from backend :)🫡",
+//     });
+// });
+
+// const ngrok = require("@ngrok/ngrok");
+// ngrok.authtoken("2uIGXWnEP5mrzcarCriXggtwq11_5fee6TTDFD5SrvBWMFmb1");
+// // Start ngrok and tunnel your server
+// ngrok
+//     .connect({ addr: port, subdomain: "mycustomsubdomain" })
+//     .then((listener) => {
+//         console.log(`Ingress established at: ${listener.url()}`);
+//     });
