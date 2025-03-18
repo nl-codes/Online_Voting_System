@@ -1,8 +1,14 @@
-const express = require("express");
-const mysql = require("mysql");
-const cors = require("cors");
-const path = require("path");
-const bcrypt = require("bcryptjs");
+import express from "express";
+import mysql from "mysql";
+import cors from "cors";
+import path from "path";
+import bcrypt from "bcryptjs";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import upload from "./middleware/multerConfig.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 
@@ -22,6 +28,8 @@ const db = mysql.createConnection({
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
+
+// app.use("/api", uploadRoutes); // Add upload route
 
 // Register user
 app.post("/user_register", async (req, res) => {
@@ -102,17 +110,14 @@ app.get("/user_exists/:email", (req, res) => {
     });
 });
 
-// app.get("/test", (req, res) => {
-//     res.json({
-//         message: "This text was sent to arjabi from backend :)🫡",
-//     });
-// });
+// Upload image to Cloudinary
+app.post("/api/upload", upload.single("image"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: "No file uploaded" });
+    }
 
-// const ngrok = require("@ngrok/ngrok");
-// ngrok.authtoken("2uIGXWnEP5mrzcarCriXggtwq11_5fee6TTDFD5SrvBWMFmb1");
-// // Start ngrok and tunnel your server
-// ngrok
-//     .connect({ addr: port, subdomain: "mycustomsubdomain" })
-//     .then((listener) => {
-//         console.log(`Ingress established at: ${listener.url()}`);
-//     });
+    res.json({
+        message: "Image uploaded successfully",
+        imageUrl: req.file.path, // Cloudinary URL
+    });
+});
