@@ -34,10 +34,13 @@ app.listen(port, () => {
 // Register user
 app.post("/user_register", async (req, res) => {
     let sql =
-        "INSERT INTO `user_details`(`first_name`, `last_name`, `email`, `pass_word`, `dob`, `photo_url`) VALUES (?,?,?,?,?,?)";
+        "INSERT INTO `user_detail`(`first_name`, `last_name`, `email`, `password_hash`, `dob`, `photo_url`) VALUES (?,?,?,?,?,?)";
 
     try {
-        const hashedPassword = await bcrypt.hash(req.body.pass_word, 10);
+        console.log(req.body);
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+
+        console.log(hashedPassword);
 
         const values = [
             req.body.first_name,
@@ -47,6 +50,7 @@ app.post("/user_register", async (req, res) => {
             req.body.dob,
             req.body.photo_url,
         ];
+        console.log(values);
 
         db.query(sql, values, (err, result) => {
             if (err)
@@ -56,14 +60,14 @@ app.post("/user_register", async (req, res) => {
             return res.json({ success: "User registered successfully" });
         });
     } catch (err) {
-        return res.status(500).json({ error: "Server error" });
+        return res.status(500).json({ error: "This Server error" + err });
     }
 });
 
 // Login user
 app.post("/user_login", (req, res) => {
-    let sql = "SELECT * FROM `user_details` WHERE `email` = ?;";
-    const { email, pass_word } = req.body;
+    let sql = "SELECT * FROM `user_detail` WHERE `email` = ?;";
+    const { email, password } = req.body;
 
     db.query(sql, [email], async (err, result) => {
         if (err)
@@ -79,7 +83,7 @@ app.post("/user_login", (req, res) => {
 
         const user = result[0];
 
-        const isMatch = await bcrypt.compare(pass_word, user.pass_word);
+        const isMatch = await bcrypt.compare(password, user.password_hash);
         if (!isMatch) {
             return res
                 .status(401)
@@ -100,24 +104,101 @@ app.post("/user_login", (req, res) => {
 });
 
 app.get("/user_exists/:email", (req, res) => {
-    let sql = "SELECT * FROM `user_details` WHERE `email` = ?;";
+    let sql = "SELECT * FROM `user_detail` WHERE `email` = ?;";
     db.query(sql, [req.params.email], (err, result) => {
         if (err)
-            return res.json({
-                message: "Something unexpected has occured : " + err,
+            return res.status(500).json({
+                error: "Something unexpected has occured : " + err,
             });
         return res.json({ exists: result.length > 0 });
     });
 });
 
-// Upload image to Cloudinary
-app.post("/api/upload", upload.single("image"), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ message: "No file uploaded" });
-    }
+app.post("/upload_picture", upload.single("image"), (req, res) => {
+    try {
+        // Log the entire request for debugging
+        console.log("Headers:", req.headers);
+        console.log("Body:", req.body);
+        console.log("File:", req.file);
 
-    res.json({
-        message: "Image uploaded successfully",
-        imageUrl: req.file.path, // Cloudinary URL
-    });
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No file uploaded",
+            });
+        }
+
+        // If file upload was successful
+        return res.status(200).json({
+            success: true,
+            message: "File uploaded successfully",
+            path: req.file.path,
+        });
+    } catch (error) {
+        console.error("Upload error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error uploading file",
+            error: error.message,
+        });
+    }
+});
+
+// Register Candidate
+app.post("/candidate_register", upload.single("image"), (req, res) => {
+    try {
+        const { full_name, saying } = req.body;
+
+        // Debug logs
+        console.log("Request body:", JSON.stringify(req.body));
+        console.log("File:", JSON.stringify(req.file));
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                message: "No file uploaded",
+            });
+        }
+
+        if (!full_name || !saying) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields",
+            });
+        }
+
+        const photo_url = req.file.path;
+        const sql =
+            "INSERT INTO `candidate`(`full_name`, `saying`, `photo_url`) VALUES (?,?,?)";
+        const values = [full_name, saying, photo_url];
+
+        db.query(sql, values, (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error",
+                    error: err.message,
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: "Candidate registered successfully",
+                data: {
+                    id: result.insertId,
+                    full_name,
+                    saying,
+                    photo_url,
+                },
+            });
+        });
+    } catch (err) {
+        console.error("Server error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: err.message || "Unknown error",
+        });
+    }
 });
