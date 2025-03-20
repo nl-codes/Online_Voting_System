@@ -202,3 +202,126 @@ app.post("/candidate_register", upload.single("image"), (req, res) => {
         });
     }
 });
+
+app.post("/election_register", (req, res) => {
+    try {
+        const { topic, description, position, start_time, stop_time } =
+            req.body;
+
+        console.log(req.body);
+        if (!topic || !description || !position || !start_time || !stop_time) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields",
+            });
+        }
+
+        const sql =
+            "INSERT INTO `election`(`topic`, `description`, `position`, `start_time`, `stop_time`) VALUES (?,?,?,?,?)";
+        const values = [topic, description, position, start_time, stop_time];
+
+        db.query(sql, values, (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error",
+                    error: err.message,
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: "Election created successfully",
+                data: {
+                    id: result.insertId,
+                    topic,
+                    description,
+                    position,
+                    start_time,
+                    stop_time,
+                },
+            });
+        });
+    } catch (err) {
+        console.error("Server error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: "Unknown error:  " + err.message,
+        });
+    }
+});
+
+app.post("/assign_candidate", (req, res) => {
+    const { election_id, candidate_id } = req.body;
+
+    if (!election_id || !candidate_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Election ID and Candidate ID are required",
+        });
+    }
+
+    const sql =
+        "INSERT INTO `election_candidate` (`election_id`, `candidate_id`, `votes`) VALUES (?, ?, 0);";
+
+    const values = [election_id, candidate_id];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error("Error assigning candidate:", err);
+            return res
+                .status(500)
+                .json({ message: "Error assigning candidate" });
+        }
+        res.json({ success: true, message: "Candidate assigned successfully" });
+    });
+});
+
+app.post("/vote", (req, res) => {
+    const { election_id, candidate_id, user_id } = req.body;
+
+    if (!election_id || !candidate_id || !user_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Election ID, Candidate ID and User ID are required",
+        });
+    }
+
+    // First check if user has already voted
+    let sql = "SELECT * FROM votes WHERE user_id = ? AND election_id = ?;";
+
+    db.query(sql, [user_id, election_id], (err, result) => {
+        if (err) {
+            console.error("Error checking vote:", err);
+            return res.status(500).json({ message: "Error voting" });
+        }
+
+        if (result.length > 0) {
+            return res.status(400).json({
+                success: false,
+                message: "User has already voted in this election",
+            });
+        }
+
+        // If user hasn't voted, proceed with inserting the vote
+        const insertSql =
+            "INSERT INTO votes (election_id, candidate_id, user_id) VALUES (?, ?, ?);";
+        const values = [election_id, candidate_id, user_id];
+
+        db.query(insertSql, values, (err, result) => {
+            if (err) {
+                console.error("Error voting:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Error voting",
+                });
+            }
+            res.json({
+                success: true,
+                message: "Vote cast successfully",
+            });
+        });
+    });
+});
