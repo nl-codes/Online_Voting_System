@@ -202,3 +202,53 @@ app.post("/candidate_register", upload.single("image"), (req, res) => {
         });
     }
 });
+
+app.post("/election_register", (req, res) => {
+    try {
+        const { topic, description, position, start_time, stop_time } =
+            req.body;
+
+        console.log(req.body);
+        if (!topic || !description || !position || !start_time || !stop_time) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields",
+            });
+        }
+
+        const sql =
+            "INSERT INTO `election`(`topic`, `description`, `position`, `start_time`, `stop_time`) VALUES (?,?,?,?,?)";
+        const values = [topic, description, position, start_time, stop_time];
+
+        db.query(sql, values, (err, result) => {
+            if (err) {
+                console.error("Database error:", err);
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error",
+                    error: err.message,
+                });
+            }
+
+            return res.status(201).json({
+                success: true,
+                message: "Election created successfully",
+                data: {
+                    id: result.insertId,
+                    topic,
+                    description,
+                    position,
+                    start_time,
+                    stop_time,
+                },
+            });
+        });
+    } catch (err) {
+        console.error("Server error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: "Unknown error:  " + err.message,
+        });
+    }
+});
