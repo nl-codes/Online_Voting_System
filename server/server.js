@@ -252,3 +252,29 @@ app.post("/election_register", (req, res) => {
         });
     }
 });
+
+app.post("/assign_candidate", (req, res) => {
+    const { election_id, candidate_id } = req.body;
+
+    if (!election_id || !candidate_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Election ID and Candidate ID are required",
+        });
+    }
+
+    const sql =
+        "INSERT INTO `election_candidate` (`election_id`, `candidate_id`, `votes`) VALUES (?, ?, 0);";
+
+    const values = [election_id, candidate_id];
+
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error("Error assigning candidate:", err);
+            return res
+                .status(500)
+                .json({ message: "Error assigning candidate" });
+        }
+        res.json({ success: true, message: "Candidate assigned successfully" });
+    });
+});
