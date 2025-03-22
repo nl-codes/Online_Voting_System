@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Overview from "../components/Overview";
 
 const LoginPage = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [user, setUser] = useState(null);
+
+    const navigate = useNavigate();
 
     // Load user from localStorage (if logged in before)
     useEffect(() => {
@@ -30,6 +32,7 @@ const LoginPage = () => {
             localStorage.setItem("user", JSON.stringify(data)); // Store user
             setUser(data); // Update state
             alert("Login successful!");
+            navigate("/home");
         } else {
             alert("Invalid credentials!");
         }
