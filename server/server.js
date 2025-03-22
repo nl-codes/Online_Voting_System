@@ -272,6 +272,20 @@ app.post("/election_register", (req, res) => {
     }
 });
 
+app.get("/view_election_brief", (req, res) => {
+    const sql =
+        "SELECT e.topic, e.stop_time, c.photo_url FROM election_candidate ec JOIN election e ON ec.election_id = e.id JOIN candidate c ON ec.candidate_id = c.id;";
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.error("Error fetching elections:", err);
+            return res
+                .status(500)
+                .json({ message: "Error fetching elections" + err });
+        }
+        res.json(result);
+    });
+});
+
 app.post("/assign_candidate", (req, res) => {
     const { election_id, candidate_id } = req.body;
 
