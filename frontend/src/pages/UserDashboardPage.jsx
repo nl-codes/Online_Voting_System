@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileDisplay from "../components/ProfileDisplay.jsx";
 import ElectionCard from "../components/ElectionCard.jsx";
+import UraharaChibi from "../assets/urahara_chibi.jpg";
 
 const UserDashboardPage = () => {
     const navigate = useNavigate();
@@ -39,7 +40,7 @@ const UserDashboardPage = () => {
             <div className="text-white text-2xl flex items-center justify-between px-20 pt-4">
                 <p className="text-3xl font-bold">ONLINE VOTING SYSTEM</p>
                 <div className="flex items-center">
-                    <ProfileDisplay />
+                    <ProfileDisplay image_url={UraharaChibi} />
                     <button
                         className="text-xl text-white font-bold hover:text-[#29142e] w-30 h-10 hover:bg-white px-4 my-4 rounded-2xl"
                         onClick={handleLogout}>
@@ -48,7 +49,7 @@ const UserDashboardPage = () => {
                 </div>
             </div>
             {/* Election Lists Box*/}
-            <div className="text-white text-2xl flex items-center justify-center px-20 pt-4">
+            <div className="text-white text-2xl flex flex-col items-center justify-center px-20 pt-4">
                 <p>Available Elections</p>
                 <div className="elections-list">
                     {error ? (
@@ -57,9 +58,11 @@ const UserDashboardPage = () => {
                         elections.map((election) => (
                             <ElectionCard
                                 key={election.id}
+                                id={election.id}
                                 topic={election.topic}
+                                description={election.description}
                                 stop_time={election.stop_time}
-                                candidates_photo_url={election.photo_url}
+                                candidate_photo_url={election.photo_url_list}
                             />
                         ))
                     ) : (
