@@ -114,6 +114,7 @@ app.get("/user_exists/:email", (req, res) => {
     });
 });
 
+// Upload picture to Cloudinary
 app.post("/upload_picture", upload.single("image"), (req, res) => {
     try {
         // Log the entire request for debugging
@@ -145,62 +146,80 @@ app.post("/upload_picture", upload.single("image"), (req, res) => {
 });
 
 // Register Candidate
-app.post("/candidate_register", upload.single("image"), (req, res) => {
-    try {
-        const { full_name, saying } = req.body;
-
-        // Debug logs
-        console.log("Request body:", JSON.stringify(req.body));
-        console.log("File:", JSON.stringify(req.file));
-
-        if (!req.file) {
+app.post("/candidate_register", (req, res) => {
+    upload.single("photo_url")(req, res, (err) => {
+        if (err) {
+            console.error("Upload error:", err);
             return res.status(400).json({
                 success: false,
-                message: "No file uploaded",
+                message: "File upload failed",
+                error:
+                    err.code === "LIMIT_FILE_SIZE"
+                        ? "File size is too large"
+                        : err.code === "LIMIT_UNEXPECTED_FILE"
+                        ? "Wrong field name for file upload (expected 'photo_url')"
+                        : err.code === "LIMIT_FILE_COUNT"
+                        ? "Too many files uploaded"
+                        : err.message || "Unknown upload error",
             });
         }
+        try {
+            console.log(req.body);
+            const { full_name, saying } = req.body;
 
-        if (!full_name || !saying) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing required fields",
-            });
-        }
+            // Debug logs
+            console.log("Request body:", JSON.stringify(req.body));
+            console.log("File:", JSON.stringify(req.file));
 
-        const photo_url = req.file.path;
-        const sql =
-            "INSERT INTO `candidate`(`full_name`, `saying`, `photo_url`) VALUES (?,?,?)";
-        const values = [full_name, saying, photo_url];
-
-        db.query(sql, values, (err, result) => {
-            if (err) {
-                console.error("Database error:", err);
-                return res.status(500).json({
+            if (!req.file) {
+                return res.status(400).json({
                     success: false,
-                    message: "Database error",
-                    error: err.message,
+                    message: "No file uploaded",
                 });
             }
 
-            return res.status(201).json({
-                success: true,
-                message: "Candidate registered successfully",
-                data: {
-                    id: result.insertId,
-                    full_name,
-                    saying,
-                    photo_url,
-                },
+            if (!full_name || !saying) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Missing required fields",
+                });
+            }
+
+            const photo_url = req.file.path;
+            const sql =
+                "INSERT INTO `candidate`(`full_name`, `photo_url` ,`saying`) VALUES (?,?,?)";
+            const values = [full_name, photo_url, saying];
+
+            db.query(sql, values, (err, result) => {
+                if (err) {
+                    console.error("Database error:", err);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Database error",
+                        error: err.message,
+                    });
+                }
+
+                return res.status(201).json({
+                    success: true,
+                    message: "Candidate registered successfully",
+                    data: {
+                        id: result.insertId,
+                        full_name,
+                        saying,
+                        photo_url,
+                    },
+                });
             });
-        });
-    } catch (err) {
-        console.error("Server error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: err.message || "Unknown error",
-        });
-    }
+        } catch (err) {
+            console.error("Server error:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Server error",
+                error: err.message || "Unknown error",
+            });
+        }
+    });
 });
 
 app.post("/election_register", (req, res) => {
