@@ -274,7 +274,7 @@ app.post("/election_register", (req, res) => {
 
 app.get("/view_election_brief", (req, res) => {
     const sql =
-        "SELECT e.topic, e.stop_time, c.photo_url FROM election_candidate ec JOIN election e ON ec.election_id = e.id JOIN candidate c ON ec.candidate_id = c.id;";
+        "SELECT e.id, e.topic, e.description, e.stop_time, GROUP_CONCAT(c.photo_url) AS photo_url_list FROM election_candidate ec JOIN election e ON ec.election_id = e.id JOIN candidate c ON ec.candidate_id = c.id WHERE e.stop_time > NOW()  GROUP BY e.id; ";
     db.query(sql, (err, result) => {
         if (err) {
             console.error("Error fetching elections:", err);
