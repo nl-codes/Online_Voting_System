@@ -322,38 +322,105 @@ app.post("/vote", (req, res) => {
         });
     }
 
-    // First check if user has already voted
-    let sql = "SELECT * FROM votes WHERE user_id = ? AND election_id = ?;";
-
-    db.query(sql, [user_id, election_id], (err, result) => {
+    // Check if user exists
+    let sql =
+        "SELECT EXISTS(SELECT 1 FROM user_detail WHERE id = ?) AS user_exist;";
+    db.query(sql, [user_id], (err, userResult) => {
         if (err) {
-            console.error("Error checking vote:", err);
-            return res.status(500).json({ message: "Error voting" });
-        }
-
-        if (result.length > 0) {
-            return res.status(400).json({
+            console.error("Error checking user:", err);
+            return res.status(500).json({
                 success: false,
-                message: "User has already voted in this election",
+                message: "Error voting",
+                error: err,
             });
         }
 
-        // If user hasn't voted, proceed with inserting the vote
-        const insertSql =
-            "INSERT INTO votes (election_id, candidate_id, user_id) VALUES (?, ?, ?);";
-        const values = [election_id, candidate_id, user_id];
+        if (userResult[0].user_exist === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "User does not exist",
+            });
+        }
 
-        db.query(insertSql, values, (err, result) => {
+        // Check if election exists
+        sql =
+            "SELECT EXISTS(SELECT 1 FROM election WHERE id = ?) AS election_exist;";
+        db.query(sql, [election_id], (err, electionResult) => {
             if (err) {
-                console.error("Error voting:", err);
+                console.error("Error checking election:", err);
                 return res.status(500).json({
                     success: false,
                     message: "Error voting",
+                    error: err,
                 });
             }
-            res.json({
-                success: true,
-                message: "Vote cast successfully",
+
+            if (electionResult[0].election_exist === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Election does not exist",
+                });
+            }
+
+            // Check if candidate exists
+            sql =
+                "SELECT EXISTS(SELECT 1 FROM candidate WHERE id = ?) AS candidate_exist;";
+            db.query(sql, [candidate_id], (err, candidateResult) => {
+                if (err) {
+                    console.error("Error checking candidate:", err);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Error voting",
+                        error: err,
+                    });
+                }
+
+                if (candidateResult[0].candidate_exist === 0) {
+                    return res.status(400).json({
+                        success: false,
+                        message: "Candidate does not exist",
+                    });
+                }
+
+                // Check if user has already voted
+                sql =
+                    "SELECT * FROM votes WHERE user_id = ? AND election_id = ?;";
+                db.query(sql, [user_id, election_id], (err, voteResult) => {
+                    if (err) {
+                        console.error("Error checking vote:", err);
+                        return res.status(500).json({
+                            success: false,
+                            message: "Error voting",
+                            error: err,
+                        });
+                    }
+
+                    if (voteResult.length > 0) {
+                        return res.status(400).json({
+                            success: false,
+                            message: "User has already voted in this election",
+                        });
+                    }
+
+                    // If all checks pass, insert the vote
+                    const insertSql =
+                        "INSERT INTO votes (election_id, candidate_id, user_id) VALUES (?, ?, ?);";
+                    const values = [election_id, candidate_id, user_id];
+
+                    db.query(insertSql, values, (err, result) => {
+                        if (err) {
+                            console.error("Error voting:", err);
+                            return res.status(500).json({
+                                success: false,
+                                message: "Error voting",
+                            });
+                        }
+                        return res.json({
+                            success: true,
+                            message: "Vote cast successfully",
+                        });
+                    });
+                });
             });
         });
     });
