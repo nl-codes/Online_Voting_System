@@ -286,6 +286,55 @@ app.get("/view_election_brief", (req, res) => {
     });
 });
 
+app.get("/view_election_full/:id", (req, res) => {
+    const electionId = req.params.id;
+
+    const sql = `
+        SELECT 
+            e.id, 
+            e.topic, 
+            e.description, 
+            e.stop_time, 
+            e.start_time,
+            e.position,
+        GROUP_CONCAT(c.photo_url SEPARATOR '|') AS photo_url_list, 
+        GROUP_CONCAT(c.full_name SEPARATOR '|') AS candidate_list, 
+        GROUP_CONCAT(c.saying SEPARATOR '|') AS saying_list, 
+        GROUP_CONCAT(COALESCE(vote_count, 0) SEPARATOR '|') AS votes_list 
+        FROM election_candidate ec 
+        JOIN election e ON ec.election_id = e.id 
+        JOIN candidate c ON ec.candidate_id = c.id 
+        LEFT JOIN (
+            SELECT candidate_id, election_id, COUNT(*) AS vote_count 
+            FROM votes 
+            GROUP BY candidate_id, election_id
+        ) v ON v.election_id = e.id AND v.candidate_id = c.id 
+        WHERE e.id = ? 
+        GROUP BY e.id`;
+    db.query(sql, [electionId], (err, result) => {
+        if (err) {
+            console.error("Error fetching election:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Error fetching election",
+                error: err.message,
+            });
+        }
+
+        if (result.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Election not found",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: result[0],
+        });
+    });
+});
+
 app.post("/assign_candidate", (req, res) => {
     const { election_id, candidate_id } = req.body;
 
