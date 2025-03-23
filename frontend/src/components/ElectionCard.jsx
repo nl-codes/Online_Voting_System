@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import ProfileDisplay from "./ProfileDisplay";
-import { formatDistanceToNow, format } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import TimeRemaining from "./TimeRemaining";
 
 const ElectionCard = ({
     id,
@@ -11,7 +11,6 @@ const ElectionCard = ({
     candidate_photo_url,
 }) => {
     const navigate = useNavigate();
-    const [timeLeft, setTimeLeft] = useState("");
     const [urlList, setUrlList] = useState([]);
 
     useEffect(() => {
@@ -24,23 +23,6 @@ const ElectionCard = ({
         }
     }, [candidate_photo_url]);
 
-    useEffect(() => {
-        const updateTimeLeft = () => {
-            const endDate = new Date(stop_time);
-            const now = new Date();
-            if (endDate > now) {
-                setTimeLeft(formatDistanceToNow(endDate, { addSuffix: true }));
-            } else {
-                setTimeLeft("Election ended");
-            }
-        };
-
-        updateTimeLeft();
-        const timer = setInterval(updateTimeLeft, 1000);
-
-        return () => clearInterval(timer);
-    }, [stop_time]);
-
     const handleSeeMore = () => {
         navigate(`/election_page/${id}`);
     };
@@ -50,15 +32,7 @@ const ElectionCard = ({
             <div className="topic-button flex justify-between">
                 <p className="font-bold mb-2">{topic}</p>
                 <div className="text-lg mb-4">
-                    <p className="text-gray-300">
-                        Ends at :{" "}
-                        <span className="border-2 border-[#f6eef8] p-2 rounded-lg">
-                            {format(new Date(stop_time), "PPpp")}
-                        </span>
-                    </p>
-                    <p className="text-yellow-400 font-medium mt-1 text-end">
-                        {timeLeft}
-                    </p>
+                    <TimeRemaining stop_time={stop_time} />
                 </div>
             </div>
             <div className="description text-lg">
