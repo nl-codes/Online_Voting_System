@@ -2,11 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TimeRemaining from "../components/TimeRemaining";
 import TimeStarted from "../components/TimeStarted";
+import CandidateCard from "../components/CandidateCard";
 
 const UserElectionPage = () => {
     const navigate = useNavigate();
 
     const electionId = useParams().id;
+
+    const [photo_url_list, setPhoto_url_list] = useState([]);
+    const [full_name_list, setFull_name_list] = useState([]);
+    const [saying_list, setSaying_list] = useState([]);
 
     const [election, setElection] = useState([]);
 
@@ -33,6 +38,33 @@ const UserElectionPage = () => {
         fetchElection();
     }, [electionId]);
 
+    useEffect(() => {
+        if (election.photo_url_list) {
+            const urls = election.photo_url_list
+                .split("|")
+                .filter((url) => url.trim());
+            setPhoto_url_list(urls);
+        }
+    }, [election.photo_url_list]);
+
+    useEffect(() => {
+        if (election.candidate_list) {
+            const candidates = election.candidate_list
+                .split("|")
+                .filter((candidate) => candidate.trim());
+            setFull_name_list(candidates);
+        }
+    }, [election.candidate_list]);
+
+    useEffect(() => {
+        if (election.saying_list) {
+            const sayings = election.saying_list
+                .split("|")
+                .filter((saying) => saying.trim());
+            setSaying_list(sayings);
+        }
+    }, [election.saying_list]);
+
     const handleBack = () => {
         navigate("/home");
     };
@@ -58,25 +90,35 @@ const UserElectionPage = () => {
                 )}
             </div>
             <div className="about-position-vote flex items-center justify-center">
-                <div className="about-position">
+                <div className="about-position text-white">
                     <div className="about flex flex-col gap-2">
                         <span className="text-2xl font-bold">About</span>
-                        <span className="text-lg text-gray-300 w-200 p-4">
+                        <span className="text-lg text-gray-400 w-200 p-2">
                             {election.description}
                         </span>
                     </div>
                     <div className="position flex flex-col gap-2">
                         <span className="text-2xl font-bold">Position</span>
-                        <span className="text-lg text-gray-300 p-4">
+                        <span className="text-lg text-gray-400 p-2">
                             {election.position}
                         </span>
                     </div>
                 </div>
-                <div className="vote-btn">
-                    <button className="text-3xl text-[#29142e] bg-white font-bold hover:white w-50 h-20 hover:cursor-pointer border-black px-8 my-4 rounded-2xl">
+                <div className="vote-bt">
+                    <button className="text-3xl text-[#29142e] bg-white font-bold hover:white w-50 h-20 hover:cursor-pointer rounded-2xl hover:shadow-lg hover:shadow-[#ab63bb]">
                         Vote
                     </button>
                 </div>
+            </div>
+            <div className="candidates-lists flex flex-col justify-center gap-4 p-4">
+                {photo_url_list.map((photo_url, index) => (
+                    <CandidateCard
+                        key={index}
+                        photo_url={photo_url}
+                        full_name={full_name_list[index]}
+                        saying={saying_list[index]}
+                    />
+                ))}
             </div>
         </div>
     );
