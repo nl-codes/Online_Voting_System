@@ -104,21 +104,27 @@ const UserElectionPage = () => {
                         </span>
                     </div>
                 </div>
-                <div className="vote-bt">
-                    <button className="text-3xl text-[#29142e] bg-white font-bold hover:white w-50 h-20 hover:cursor-pointer rounded-2xl hover:shadow-lg hover:shadow-[#ab63bb]">
-                        Vote
+                <div className="vote-btn">
+                    <button className="text-3xl text-[#29142e] bg-white font-bold hover:white w-40 h-20 hover:cursor-pointer rounded-2xl hover:shadow-lg hover:shadow-[#ab63bb]">
+                        VOTE
                     </button>
                 </div>
             </div>
-            <div className="candidates-lists flex flex-col justify-center gap-4 p-4">
-                {photo_url_list.map((photo_url, index) => (
-                    <CandidateCard
-                        key={index}
-                        photo_url={photo_url}
-                        full_name={full_name_list[index]}
-                        saying={saying_list[index]}
-                    />
-                ))}
+            <div className="candidates-graphs flex itesm-center justify-center gap-8">
+                <div className="candidates-lists flex flex-col justify-center gap-8 p-4">
+                    <p className="text-2xl text-white font-serif  font-bold">
+                        Candidate list :
+                    </p>
+                    {photo_url_list.map((photo_url, index) => (
+                        <CandidateCard
+                            key={index}
+                            photo_url={photo_url}
+                            full_name={full_name_list[index]}
+                            saying={saying_list[index]}
+                        />
+                    ))}
+                </div>
+                <div className="w-200 bg-cyan-500">Graphs</div>
             </div>
         </div>
     );
