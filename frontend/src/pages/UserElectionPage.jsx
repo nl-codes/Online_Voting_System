@@ -3,6 +3,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import TimeRemaining from "../components/TimeRemaining";
 import TimeStarted from "../components/TimeStarted";
 import CandidateCard from "../components/CandidateCard";
+import VotingPopUp from "../components/VotingPopUp";
+import ProfileDisplay from "../components/ProfileDisplay";
 
 const UserElectionPage = () => {
     const navigate = useNavigate();
@@ -14,6 +16,30 @@ const UserElectionPage = () => {
     const [saying_list, setSaying_list] = useState([]);
 
     const [election, setElection] = useState([]);
+
+    const [trigger, setTrigger] = useState(false);
+
+    const validVoterId = 1234;
+    const [voterId, setVoterId] = useState(0);
+
+    const [validVoter, setValidVoter] = useState(false);
+
+    const handleOpenPopUp = () => {
+        setTrigger(true);
+    };
+    const handleClosePopUp = () => {
+        setTrigger(false);
+    };
+
+    const handleVoterValidation = () => {
+        if (parseInt(voterId) == validVoterId) {
+            setValidVoter(true);
+            console.log(voterId);
+            alert("Voter vaild");
+        } else {
+            alert("Voter not valid.");
+        }
+    };
 
     useEffect(() => {
         const fetchElection = async () => {
@@ -71,6 +97,47 @@ const UserElectionPage = () => {
 
     return (
         <div className="min-h-screen bg-[#29142e] flex flex-col ">
+            <VotingPopUp trigger={trigger} handleClosePopUp={handleClosePopUp}>
+                {validVoter ? (
+                    <div className="">
+                        <p className="text-white font-bold text-2xl">
+                            VOTE FOR :
+                        </p>
+                        <div className="candidates-groups flex justify-around mt-4">
+                            {photo_url_list.map((photo_url, index) => (
+                                <div
+                                    key={index}
+                                    className="flex flex-col items-center gap-4">
+                                    <ProfileDisplay
+                                        image_url={photo_url}
+                                        sizes={{ width: 100, height: 100 }}
+                                    />
+                                    <span>{full_name_list[index]}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-8 items-center justify-around">
+                        <p className="text-2xl font-bold text-[#29142e]">
+                            To Authorize, Enter voter ID:
+                        </p>
+                        <div className="flex gap-4 items-center justify-center">
+                            <input
+                                type="number"
+                                className="border-white border-4 h-10 p-4 text-xl font-bold rounded-lg"
+                                onChange={(e) => setVoterId(e.target.value)}
+                                value={voterId}
+                            />
+                            <button
+                                onClick={handleVoterValidation}
+                                className="text-white font-bold bg-[#29142e] py-2 px-4 cursor-pointer rounded-md">
+                                Authorize
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </VotingPopUp>
             <div className="Header p-4 flex justify-between items-center">
                 <span
                     className="cursor-pointer text-white font-bold text-xl hover:underline"
@@ -105,7 +172,9 @@ const UserElectionPage = () => {
                     </div>
                 </div>
                 <div className="vote-btn">
-                    <button className="text-3xl text-[#29142e] bg-white font-bold hover:white w-40 h-20 hover:cursor-pointer rounded-2xl hover:shadow-lg hover:shadow-[#ab63bb]">
+                    <button
+                        className="text-3xl text-[#29142e] bg-white font-bold hover:white w-40 h-20 hover:cursor-pointer rounded-2xl hover:shadow-lg hover:shadow-[#ab63bb] "
+                        onClick={handleOpenPopUp}>
                         VOTE
                     </button>
                 </div>
