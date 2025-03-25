@@ -50,7 +50,7 @@ const UserDashboardPage = () => {
             </div>
             {/* Election Lists Box*/}
             <div className="text-white text-2xl flex flex-col items-center justify-center px-20 pt-4">
-                <p>Available Elections</p>
+                <p className="text-4xl">Available Elections</p>
                 <div className="elections-list">
                     {error ? (
                         <p className="text-red-500">Error: {error}</p>
@@ -66,7 +66,9 @@ const UserDashboardPage = () => {
                             />
                         ))
                     ) : (
-                        <p>No elections available</p>
+                        <p className="text-yellow-400 mt-50">
+                            No elections going on right now
+                        </p>
                     )}
                 </div>
             </div>

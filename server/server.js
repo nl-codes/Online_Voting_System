@@ -362,12 +362,13 @@ app.post("/assign_candidate", (req, res) => {
 });
 
 app.post("/vote", (req, res) => {
-    const { election_id, candidate_id, user_id } = req.body;
+    const { election_id, candidate_id, user_id, voter_id } = req.body;
 
-    if (!election_id || !candidate_id || !user_id) {
+    if (!election_id || !candidate_id || !user_id || !voter_id) {
         return res.status(400).json({
             success: false,
-            message: "Election ID, Candidate ID and User ID are required",
+            message:
+                "Election ID, Candidate ID, User ID, Voter ID are required",
         });
     }
 
@@ -391,10 +392,10 @@ app.post("/vote", (req, res) => {
             });
         }
 
-        // Check if election exists
+        // Check if voter_id exists
         sql =
-            "SELECT EXISTS(SELECT 1 FROM election WHERE id = ?) AS election_exist;";
-        db.query(sql, [election_id], (err, electionResult) => {
+            "SELECT EXISTS(SELECT 1 FROM voter_card WHERE voter_id = ?) AS voter_exist;";
+        db.query(sql, [voter_id], (err, voterIdResult) => {
             if (err) {
                 console.error("Error checking election:", err);
                 return res.status(500).json({
@@ -404,19 +405,19 @@ app.post("/vote", (req, res) => {
                 });
             }
 
-            if (electionResult[0].election_exist === 0) {
+            if (voterIdResult[0].voter_exist === 0) {
                 return res.status(400).json({
                     success: false,
-                    message: "Election does not exist",
+                    message: "Voter Id does not exist",
                 });
             }
 
-            // Check if candidate exists
+            // Check if election exists
             sql =
-                "SELECT EXISTS(SELECT 1 FROM candidate WHERE id = ?) AS candidate_exist;";
-            db.query(sql, [candidate_id], (err, candidateResult) => {
+                "SELECT EXISTS(SELECT 1 FROM election WHERE id = ?) AS election_exist;";
+            db.query(sql, [election_id], (err, electionResult) => {
                 if (err) {
-                    console.error("Error checking candidate:", err);
+                    console.error("Error checking election:", err);
                     return res.status(500).json({
                         success: false,
                         message: "Error voting",
@@ -424,19 +425,19 @@ app.post("/vote", (req, res) => {
                     });
                 }
 
-                if (candidateResult[0].candidate_exist === 0) {
+                if (electionResult[0].election_exist === 0) {
                     return res.status(400).json({
                         success: false,
-                        message: "Candidate does not exist",
+                        message: "Election does not exist",
                     });
                 }
 
-                // Check if user has already voted
+                // Check if candidate exists
                 sql =
-                    "SELECT * FROM votes WHERE user_id = ? AND election_id = ?;";
-                db.query(sql, [user_id, election_id], (err, voteResult) => {
+                    "SELECT EXISTS(SELECT 1 FROM candidate WHERE id = ?) AS candidate_exist;";
+                db.query(sql, [candidate_id], (err, candidateResult) => {
                     if (err) {
-                        console.error("Error checking vote:", err);
+                        console.error("Error checking candidate:", err);
                         return res.status(500).json({
                             success: false,
                             message: "Error voting",
@@ -444,33 +445,205 @@ app.post("/vote", (req, res) => {
                         });
                     }
 
-                    if (voteResult.length > 0) {
+                    if (candidateResult[0].candidate_exist === 0) {
                         return res.status(400).json({
                             success: false,
-                            message: "User has already voted in this election",
+                            message: "Candidate does not exist",
                         });
                     }
 
-                    // If all checks pass, insert the vote
-                    const insertSql =
-                        "INSERT INTO votes (election_id, candidate_id, user_id) VALUES (?, ?, ?);";
-                    const values = [election_id, candidate_id, user_id];
+                    // Check if user has already voted
+                    sql =
+                        "SELECT * FROM votes WHERE voter_id = ? AND election_id = ?;";
+                    db.query(
+                        sql,
+                        [voter_id, election_id],
+                        (err, voteResult) => {
+                            if (err) {
+                                console.error("Error checking vote:", err);
+                                return res.status(500).json({
+                                    success: false,
+                                    message: "Error voting",
+                                    error: err,
+                                });
+                            }
 
-                    db.query(insertSql, values, (err, result) => {
-                        if (err) {
-                            console.error("Error voting:", err);
-                            return res.status(500).json({
-                                success: false,
-                                message: "Error voting",
+                            if (voteResult.length > 0) {
+                                return res.status(400).json({
+                                    success: false,
+                                    message:
+                                        "User has already voted in this election",
+                                });
+                            }
+
+                            // If all checks pass, insert the vote
+                            const insertSql =
+                                "INSERT INTO votes (election_id, candidate_id, voter_id) VALUES (?, ?, ?);";
+                            const values = [
+                                election_id,
+                                candidate_id,
+                                voter_id,
+                            ];
+
+                            db.query(insertSql, values, (err, result) => {
+                                if (err) {
+                                    console.error("Error voting:", err);
+                                    return res.status(500).json({
+                                        success: false,
+                                        message: "Error voting",
+                                    });
+                                }
+                                return res.json({
+                                    success: true,
+                                    message: "Vote cast successfully",
+                                });
                             });
                         }
-                        return res.json({
-                            success: true,
-                            message: "Vote cast successfully",
-                        });
-                    });
+                    );
                 });
             });
+        });
+    });
+});
+
+app.post("/voter_card_register", (req, res) => {
+    try {
+        const { citizenship_number, phone_number } = req.body;
+
+        console.log(req.body);
+        if (!citizenship_number || !phone_number) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields",
+            });
+        }
+
+        // Nepal phone number validation using native JavaScript regex
+        const nepalPhoneRegex = /^9[7-8][0-9]{8}$/;
+        if (!nepalPhoneRegex.test(phone_number)) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Invalid phone number format. Must be a Nepal phone number starting with 97 or 98 followed by 8 digits",
+            });
+        }
+
+        // First check if citizenship_number or phone_number already exists
+        const checkSql =
+            "SELECT * FROM voter_card WHERE citizenship_number = ? OR phone_number = ?";
+        db.query(
+            checkSql,
+            [citizenship_number, phone_number],
+            (checkErr, checkResult) => {
+                if (checkErr) {
+                    console.error("Database error:", checkErr);
+                    return res.status(500).json({
+                        success: false,
+                        message: "Database error",
+                        error: checkErr.message,
+                    });
+                }
+
+                // If records exist, send error response
+                if (checkResult.length > 0) {
+                    const existingRecord = checkResult[0];
+                    console.log(existingRecord.citizenship_number);
+                    if (
+                        existingRecord.citizenship_number == citizenship_number
+                    ) {
+                        return res.status(400).json({
+                            success: false,
+                            message: "Citizenship number already registered",
+                        });
+                    } else {
+                        return res.status(400).json({
+                            success: false,
+                            message: "Phone number already registered",
+                        });
+                    }
+                }
+
+                // If no existing records, proceed with insertion
+                const insertSql =
+                    "INSERT INTO `voter_card`(`citizenship_number`, `phone_number`) VALUES (?,?)";
+                const values = [citizenship_number, phone_number];
+
+                db.query(insertSql, values, (insertErr, result) => {
+                    if (insertErr) {
+                        console.error("Database error:", insertErr);
+                        return res.status(500).json({
+                            success: false,
+                            message: "Database error",
+                            error: insertErr.message,
+                        });
+                    }
+
+                    // Get the voter_id from the newly inserted record
+                    const getVoterIdSql =
+                        "SELECT voter_id FROM voter_card WHERE citizenship_number = ? AND phone_number = ?";
+                    db.query(
+                        getVoterIdSql,
+                        [citizenship_number, phone_number],
+                        (err, voterResult) => {
+                            if (err) {
+                                console.error("Error fetching voter_id:", err);
+                                return res.status(500).json({
+                                    success: false,
+                                    message: "Error retrieving voter ID",
+                                    error: err.message,
+                                });
+                            }
+
+                            return res.status(201).json({
+                                success: true,
+                                message: "Voter Card created successfully",
+                                data: {
+                                    voter_id: voterResult[0].voter_id,
+                                    citizenship_number,
+                                    phone_number,
+                                },
+                            });
+                        }
+                    );
+                });
+            }
+        );
+    } catch (err) {
+        console.error("Server error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: "Unknown error: " + err.message,
+        });
+    }
+});
+
+app.get("/voter_id_retrieve", (req, res) => {
+    console.log(req.body);
+    const { voter_id } = req.body;
+    const sql = "SELECT voter_id FROM voter_card WHERE voter_id = ?";
+    db.query(sql, [voter_id], (err, result) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Database error",
+                error: err.message,
+            });
+        }
+        // Check if any results were found
+        if (result.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Voter ID not found",
+            });
+        }
+
+        // Access the first row's voter_id
+        return res.status(200).json({
+            success: true,
+            message: "Voter found",
+            voter_id: result[0].voter_id,
         });
     });
 });
