@@ -617,3 +617,33 @@ app.post("/voter_card_register", (req, res) => {
         });
     }
 });
+
+app.get("/voter_id_retrieve", (req, res) => {
+    console.log(req.body);
+    const { voter_id } = req.body;
+    const sql = "SELECT voter_id FROM voter_card WHERE voter_id = ?";
+    db.query(sql, [voter_id], (err, result) => {
+        if (err) {
+            console.error("Database error:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Database error",
+                error: err.message,
+            });
+        }
+        // Check if any results were found
+        if (result.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Voter ID not found",
+            });
+        }
+
+        // Access the first row's voter_id
+        return res.status(200).json({
+            success: true,
+            message: "Voter found",
+            voter_id: result[0].voter_id,
+        });
+    });
+});
