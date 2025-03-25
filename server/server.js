@@ -394,7 +394,7 @@ app.post("/vote", (req, res) => {
 
         // Check if voter_id exists
         sql =
-            "SELECT EXISTS(SELECT 1 FROM voter_card WHERE id = ?) AS voter_exist;";
+            "SELECT EXISTS(SELECT 1 FROM voter_card WHERE voter_id = ?) AS voter_exist;";
         db.query(sql, [voter_id], (err, voterIdResult) => {
             if (err) {
                 console.error("Error checking election:", err);
