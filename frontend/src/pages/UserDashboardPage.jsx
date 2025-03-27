@@ -24,13 +24,12 @@ const UserDashboardPage = () => {
                 }
                 const data = await response.json();
                 console.log("Elections data:", data);
-                setElections(data);
+                setElections(data.data);
             } catch (error) {
                 console.error("Error fetching elections:", error);
                 setError(error.message);
             }
         };
-
         fetchElections();
     }, []);
 
