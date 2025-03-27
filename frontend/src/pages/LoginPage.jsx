@@ -2,63 +2,52 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Overview from "../components/Overview";
 
-const LoginPage = () => {
+const LoginPage = ({ userId, setUserId }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [user, setUser] = useState(null);
-
     const navigate = useNavigate();
 
-    // Load user from localStorage (if logged in before)
+    // Check if user is already logged in
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
+        const storedUserId = localStorage.getItem("userId");
+        if (storedUserId) {
+            setUserId(storedUserId);
+            navigate("/home");
         }
-    }, []);
+    }, [setUserId, navigate]);
 
     // Handle login
     const handleLogin = async (e) => {
         e.preventDefault();
-        console.log(email, password);
-        const response = await fetch("http://localhost:5000/user_login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email, password: password }),
-        });
+        try {
+            const response = await fetch("http://localhost:5000/user_login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password }),
+            });
 
-        const data = await response.json();
-        if (data.success) {
-            localStorage.setItem("user", JSON.stringify(data)); // Store user
-            setUser(data); // Update state
-            alert("Login successful!");
-            navigate("/home");
-        } else {
-            alert("Invalid credentials!");
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem("userId", data.id);
+                setUserId(data.id);
+                navigate("/home");
+            } else {
+                alert(data.error || "Invalid credentials!");
+            }
+        } catch (error) {
+            console.error("Login error:", error);
+            alert("An error occurred during login. Please try again.");
         }
     };
 
-    // Handle logout
-    const handleLogout = () => {
-        localStorage.removeItem("user");
-        setUser(null);
-        alert("Logged out successfully!");
-    };
+    // If user is already logged in, don't render the login page
+    if (userId) {
+        return null;
+    }
 
     return (
         <div>
-            {user ? (
-                <div className="bg-[#512C59]/90 p-8 rounded-lg shadow-lg">
-                    <h2 className="text-2xl font-bold mb-4">
-                        Welcome, {user.first_name}!
-                    </h2>
-                    <button
-                        onClick={handleLogout}
-                        className="bg-red-500 text-[#512C59] px-4 py-2 rounded hover:bg-red-600">
-                        Logout
-                    </button>
-                </div>
-            ) : (
+            {userId && (
                 <div className="min-h-screen flex flex-row gap-20 items-center justify-center bg-[#c791d4] text-[#512C59] font-poppins p-4">
                     <Overview />
                     <div className="border-4 border-[#512C59] rounded-3xl p-8 w-96 shadow-xl bg-white flex flex-col items-center">
