@@ -13,7 +13,7 @@ const App = () => {
     const [userId, setUserId] = useState(null);
     return (
         <Router>
-            <Routes>
+            <Routes> 
                 <Route path="/" element={<LandingPage />} />
                 <Route
                     path="/home"

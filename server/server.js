@@ -403,7 +403,7 @@ app.post("/vote", async (req, res) => {
         if (!voterResult.length) {
             return res.status(400).json({
                 success: false,
-                message: "Voter ID does not exist",
+                message: "Voter ID isn't registered",
             });
         }
 
@@ -604,7 +604,8 @@ app.post(
 app.get("/voter_id_retrieve", async (req, res) => {
     try {
         const { user_id } = req.body;
-        const sql = "SELECT voter_id FROM voter_card WHERE user_id = ?";
+        const sql =
+            "SELECT voter_id, verification_status FROM voter_card WHERE user_id = ?";
 
         const [result] = await pool.execute(sql, [user_id]);
 
@@ -612,6 +613,15 @@ app.get("/voter_id_retrieve", async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Voter ID not found",
+                status: "Unapplied",
+            });
+        }
+
+        if (result[0].verification_status != 1) {
+            return res.status(401).json({
+                success: false,
+                message: "Voter ID hasn't been verified yet.",
+                status: "Pending",
             });
         }
 
@@ -619,6 +629,7 @@ app.get("/voter_id_retrieve", async (req, res) => {
             success: true,
             message: "Voter found",
             voter_id: result[0].voter_id,
+            status: "verified",
         });
     } catch (err) {
         console.error("Database error:", err);
