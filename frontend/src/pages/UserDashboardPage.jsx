@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileDisplay from "../components/ProfileDisplay.jsx";
 import ElectionCard from "../components/ElectionCard.jsx";
 import UraharaChibi from "../assets/urahara_chibi.jpg";
+import { UserContext } from "../context/UserContext.jsx";
+import UnAuthorized from "../components/UnAuthorized.jsx";
 
-const UserDashboardPage = ({ userId, setUserId }) => {
+const UserDashboardPage = () => {
+    const { userId, setUserId } = useContext(UserContext);
     const navigate = useNavigate();
 
     const handleLogout = () => {
         localStorage.removeItem("userId");
         setUserId(null);
-        navigate("/");
+        navigate("/login");
     };
 
     const [elections, setElections] = useState([]);
@@ -40,6 +43,9 @@ const UserDashboardPage = ({ userId, setUserId }) => {
         setUserId(2);
         navigate(`/voter_card/${userId}`);
     };
+    if (!userId) {
+        return <UnAuthorized />;
+    }
 
     return (
         <div className="bg-[#29142e] h-screen w-screen">
