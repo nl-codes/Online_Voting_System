@@ -56,7 +56,7 @@ const UserDashboardPage = () => {
                     VOTER PORTAL
                 </button>
                 <p className="text-3xl font-bold">ONLINE VOTING SYSTEM</p>
-                <div className="flex items-center">
+                <div className="flex items-center gap-5">
                     <ProfileDisplay image_url={UraharaChibi} />
                     <button
                         className="text-xl text-white font-bold hover:text-[#29142e] w-30 h-10 hover:bg-white px-4 my-4 rounded-2xl"
@@ -67,7 +67,9 @@ const UserDashboardPage = () => {
             </div>
             {/* Election Lists Box*/}
             <div className="text-white text-2xl flex flex-col items-center justify-center px-20 pt-4">
-                <p className="text-4xl">Available Elections</p>
+                <p className="text-3xl text-yellow-400 flex items-start justify-start w-full pl-40 py-5">
+                    Available Elections :
+                </p>
                 <div className="elections-list">
                     {error ? (
                         <p className="text-red-500">Error: {error}</p>
