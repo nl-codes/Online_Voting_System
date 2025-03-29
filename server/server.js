@@ -605,7 +605,7 @@ app.get("/voter_id_retrieve", async (req, res) => {
     try {
         const { user_id } = req.body;
         const sql =
-            "SELECT voter_id, verification_status FROM voter_card WHERE user_id = ?";
+            "SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name, u.photo_url, v.voter_id, v.citizenship_number, v.phone_number, v.verification_status FROM user_detail AS u JOIN voter_card AS v ON u.id = v.user_id WHERE v.user_id = ? GROUP BY v.user_id;";
 
         const [result] = await pool.execute(sql, [user_id]);
 
@@ -630,6 +630,13 @@ app.get("/voter_id_retrieve", async (req, res) => {
             message: "Voter found",
             voter_id: result[0].voter_id,
             status: "verified",
+            data: {
+                full_name: result[0].full_name,
+                photo_url: result[0].photo_url,
+                citizenship_number: result[0].citizenship_number,
+                phone_number: result[0].phone_number,
+                verification_status: result[0].verification_status,
+            },
         });
     } catch (err) {
         console.error("Database error:", err);
