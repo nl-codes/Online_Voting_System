@@ -40,8 +40,7 @@ const UserDashboardPage = () => {
     }, []);
 
     const handleVoterPortal = () => {
-        setUserId(2);
-        navigate(`/voter_card/${userId}`);
+        navigate(`/voter_card`);
     };
     if (!userId) {
         return <UnAuthorized />;

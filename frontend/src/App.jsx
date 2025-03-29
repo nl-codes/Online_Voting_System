@@ -27,7 +27,7 @@ const App = () => {
                         element={<UserElectionPage />}
                     />
                     <Route
-                        path="/voter_card/:userId"
+                        path="/voter_card"
                         element={<VoterCardPortalPage />}
                     />
 
