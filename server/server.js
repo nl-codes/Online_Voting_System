@@ -601,7 +601,7 @@ app.post(
     }
 );
 
-app.get("/voter_id_retrieve", async (req, res) => {
+app.post("/voter_id_retrieve", async (req, res) => {
     try {
         const { user_id } = req.body;
         const sql =
@@ -613,7 +613,7 @@ app.get("/voter_id_retrieve", async (req, res) => {
             return res.status(404).json({
                 success: false,
                 message: "Voter ID not found",
-                status: "Unapplied",
+                status: "unapplied",
             });
         }
 
@@ -621,7 +621,7 @@ app.get("/voter_id_retrieve", async (req, res) => {
             return res.status(401).json({
                 success: false,
                 message: "Voter ID hasn't been verified yet.",
-                status: "Pending",
+                status: "pending",
             });
         }
 
@@ -631,11 +631,11 @@ app.get("/voter_id_retrieve", async (req, res) => {
             voter_id: result[0].voter_id,
             status: "verified",
             data: {
+                voter_id: result[0].voter_id,
                 full_name: result[0].full_name,
                 photo_url: result[0].photo_url,
                 citizenship_number: result[0].citizenship_number,
                 phone_number: result[0].phone_number,
-                verification_status: result[0].verification_status,
             },
         });
     } catch (err) {

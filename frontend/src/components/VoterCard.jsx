@@ -25,7 +25,7 @@ const VoterCard = ({ voterData }) => {
                                 Name
                             </span>
                             <span className="text-[#29142e] font-bold">
-                                {voterData.name}
+                                {voterData.full_name}
                             </span>
                         </div>
                         <div className="flex justify-between">
@@ -46,7 +46,7 @@ const VoterCard = ({ voterData }) => {
                         </div>
                     </div>
                     <ProfileDisplay
-                        image_url={voterData.image_url}
+                        image_url={voterData.photo_url}
                         sizes={{ width: 120, height: 120 }}
                     />
                 </div>
