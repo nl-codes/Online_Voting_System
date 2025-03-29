@@ -1,13 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileDisplay from "../components/ProfileDisplay.jsx";
 import ElectionCard from "../components/ElectionCard.jsx";
 import UraharaChibi from "../assets/urahara_chibi.jpg";
+import { UserContext } from "../context/UserContext.jsx";
+import UnAuthorized from "../components/UnAuthorized.jsx";
 
 const UserDashboardPage = () => {
+    const { userId, setUserId } = useContext(UserContext);
     const navigate = useNavigate();
+
     const handleLogout = () => {
-        navigate("/");
+        localStorage.removeItem("userId");
+        setUserId(null);
+        navigate("/login");
     };
 
     const [elections, setElections] = useState([]);
@@ -33,10 +39,22 @@ const UserDashboardPage = () => {
         fetchElections();
     }, []);
 
+    const handleVoterPortal = () => {
+        navigate(`/voter_card`);
+    };
+    if (!userId) {
+        return <UnAuthorized />;
+    }
+
     return (
         <div className="bg-[#29142e] h-screen w-screen">
             {/* Header */}
             <div className="text-white text-2xl flex items-center justify-between px-20 pt-4">
+                <button
+                    className="text-white bg-[#ab63bb] px-4 py-2 rounded-md font-bold cursor-pointer transition-all duration-150 ease-in-out hover:scale-110 hover:shadow-[0_0_10px_#ab63bb]"
+                    onClick={handleVoterPortal}>
+                    VOTER PORTAL
+                </button>
                 <p className="text-3xl font-bold">ONLINE VOTING SYSTEM</p>
                 <div className="flex items-center">
                     <ProfileDisplay image_url={UraharaChibi} />

@@ -7,14 +7,17 @@ import AssignCandidates from "./pages/AssignCandidates";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import UserDashboardPage from "./pages/UserDashboardPage";
 import UserElectionPage from "./pages/UserElectionPage";
+import VoterCardPortalPage from "./pages/VoterCardPortalPage";
+import UserProvider from "./context/UserProvider";
 
 const App = () => {
     return (
-        <>
+        <UserProvider>
             <Router>
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/home" element={<UserDashboardPage />} />
+                    <Route path="/login" element={<LoginPage />} />
                     <Route
                         path="/sec/admin/dashboard"
                         element={<AdminDashboardPage />}
@@ -23,11 +26,15 @@ const App = () => {
                         path="/election_page/:id"
                         element={<UserElectionPage />}
                     />
-                    <Route path="/login" element={<LoginPage />} />
+                    <Route
+                        path="/voter_card"
+                        element={<VoterCardPortalPage />}
+                    />
+
                     <Route path="/signup" element={<SignupPage />} />
                 </Routes>
             </Router>
-        </>
+        </UserProvider>
     );
 };
 
