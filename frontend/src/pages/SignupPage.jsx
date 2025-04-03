@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import Overview from "../components/Overview";
+import { API_BASE_URL } from "../config/api";
 
 const SignupPage = () => {
     const [user, setUser] = useState({
@@ -118,7 +119,7 @@ const SignupPage = () => {
         if (Object.values(newErrors).every((error) => error === "")) {
             try {
                 const response = await axios.get(
-                    `http://localhost:5000/user_exists/${user.email}`
+                    `${API_BASE_URL}/user_exists/${user.email}`
                 );
                 console.log(response.data.exists);
                 if (response.data.exists) {
@@ -134,7 +135,7 @@ const SignupPage = () => {
 
             try {
                 const response = await axios.post(
-                    "http://localhost:5000/user_register",
+                    `${API_BASE_URL}/user_register`,
                     user
                 );
                 if (response.data.success) {

@@ -5,6 +5,7 @@ import ElectionCard from "../components/ElectionCard.jsx";
 import UraharaChibi from "../assets/urahara_chibi.jpg";
 import { UserContext } from "../context/UserContext.jsx";
 import UnAuthorized from "../components/UnAuthorized.jsx";
+import { API_BASE_URL } from "../config/api.jsx";
 
 const UserDashboardPage = () => {
     const { userId, setUserId } = useContext(UserContext);
@@ -23,7 +24,7 @@ const UserDashboardPage = () => {
         const fetchElections = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/view_election_brief"
+                    `${API_BASE_URL}/view_election_brief`
                 );
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

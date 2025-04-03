@@ -28,6 +28,7 @@ const pool = mysql.createPool({
     user: "root",
     password: "",
     database: "online_voting_system",
+    port: 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
