@@ -559,6 +559,18 @@ app.post(
                 });
             }
 
+            const [userExistResult] = await pool.execute(
+                "SELECT * FROM user_detail WHERE id = ?",
+                [user_id]
+            );
+
+            if (userExistResult.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Cannot Create Voter Card for unregistered user",
+                });
+            }
+
             // Insert new voter card
             const [insertResult] = await pool.execute(
                 `INSERT INTO voter_card 
