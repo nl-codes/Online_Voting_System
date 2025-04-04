@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import VoterForm from "../components/VoterForm";
 import VoterCard from "../components/VoterCard";
 import LoadingDots from "../components/LoadingDots";
+import { API_BASE_URL } from "../config/api";
 
 const VoterCardPortalPage = () => {
     const { userId } = useContext(UserContext);
@@ -19,7 +20,7 @@ const VoterCardPortalPage = () => {
         const checkVoterStatus = async () => {
             try {
                 const response = await fetch(
-                    "http://localhost:5000/voter_id_retrieve",
+                    `${API_BASE_URL}/voter_id_retrieve`,
                     {
                         method: "POST",
                         headers: {

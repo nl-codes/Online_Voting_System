@@ -5,6 +5,7 @@ import TimeStarted from "../components/TimeStarted";
 import CandidateCard from "../components/CandidateCard";
 import VotingPopUp from "../components/VotingPopUp";
 import ProfileDisplay from "../components/ProfileDisplay";
+import { API_BASE_URL } from "../config/api";
 
 const UserElectionPage = () => {
     const navigate = useNavigate();
@@ -45,7 +46,7 @@ const UserElectionPage = () => {
         const fetchElection = async () => {
             try {
                 const response = await fetch(
-                    `http://localhost:5000/view_election_full/${electionId}`
+                    `${API_BASE_URL}/view_election_full/${electionId}`
                 );
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);

@@ -28,6 +28,7 @@ const pool = mysql.createPool({
     user: "root",
     password: "",
     database: "online_voting_system",
+    port: 3306,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
@@ -555,6 +556,18 @@ app.post(
                         existingRecord.citizenship_number === citizenship_number
                             ? "Citizenship number already registered"
                             : "Phone number already registered",
+                });
+            }
+
+            const [userExistResult] = await pool.execute(
+                "SELECT * FROM user_detail WHERE id = ?",
+                [user_id]
+            );
+
+            if (userExistResult.length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Cannot Create Voter Card for unregistered user",
                 });
             }
 

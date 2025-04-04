@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 const AssignCandidates = () => {
     const [elections, setElections] = useState([]);
@@ -10,12 +11,14 @@ const AssignCandidates = () => {
 
     useEffect(() => {
         // Fetch elections
-        axios.get("http://localhost:5000/api/elections")
+        axios
+            .get(`${API_BASE_URL}/api/elections`)
             .then((res) => setElections(res.data))
             .catch((err) => console.error(err));
 
         // Fetch candidates
-        axios.get("http://localhost:5000/api/candidates")
+        axios
+            .get(`${API_BASE_URL}/api/candidates`)
             .then((res) => setCandidates(res.data))
             .catch((err) => console.error(err));
     }, []);
@@ -30,7 +33,7 @@ const AssignCandidates = () => {
         }
 
         try {
-            await axios.post("http://localhost:5000/api/election_candidates", {
+            await axios.post(`${API_BASE_URL}/api/election_candidates`, {
                 election_id: selectedElection,
                 candidate_ids: selectedCandidates,
             });
@@ -46,7 +49,9 @@ const AssignCandidates = () => {
 
     return (
         <div className="max-w-md mx-auto p-6 bg-white shadow-md rounded-md">
-            <h2 className="text-2xl font-bold mb-4">Assign Candidates to Election</h2>
+            <h2 className="text-2xl font-bold mb-4">
+                Assign Candidates to Election
+            </h2>
             {message && <p className="text-green-600 mb-4">{message}</p>}
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,8 +62,7 @@ const AssignCandidates = () => {
                         className="w-full p-2 border rounded"
                         value={selectedElection}
                         onChange={(e) => setSelectedElection(e.target.value)}
-                        required
-                    >
+                        required>
                         <option value="">-- Choose Election --</option>
                         {elections.map((e) => (
                             <option key={e.id} value={e.id}>
@@ -70,7 +74,9 @@ const AssignCandidates = () => {
 
                 {/* Select Candidates (Multi-select) */}
                 <div>
-                    <label className="block font-medium">Select Candidates</label>
+                    <label className="block font-medium">
+                        Select Candidates
+                    </label>
                     <div className="border p-2 rounded">
                         {candidates.map((c) => (
                             <label key={c.id} className="block">
@@ -82,7 +88,9 @@ const AssignCandidates = () => {
                                         const value = Number(e.target.value);
                                         setSelectedCandidates((prev) =>
                                             prev.includes(value)
-                                                ? prev.filter((id) => id !== value)
+                                                ? prev.filter(
+                                                      (id) => id !== value
+                                                  )
                                                 : [...prev, value]
                                         );
                                     }}
@@ -93,7 +101,9 @@ const AssignCandidates = () => {
                     </div>
                 </div>
 
-                <button type="submit" className="w-full bg-blue-600 text-white p-2 rounded">
+                <button
+                    type="submit"
+                    className="w-full bg-blue-600 text-white p-2 rounded">
                     Assign Candidates
                 </button>
             </form>
