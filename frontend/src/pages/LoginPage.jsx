@@ -12,7 +12,7 @@ const LoginPage = () => {
 
     // Check if user is already logged in
     useEffect(() => {
-        const storedUserId = localStorage.getItem("userId");
+        const storedUserId = sessionStorage.getItem("userId");
         if (storedUserId && !userId) {
             setUserId(storedUserId);
             navigate("/home");
@@ -30,7 +30,7 @@ const LoginPage = () => {
 
             const data = await response.json();
             if (data.success) {
-                localStorage.setItem("userId", data.id);
+                sessionStorage.setItem("userId", data.id);
                 setUserId(data.id);
                 navigate("/home");
             } else {

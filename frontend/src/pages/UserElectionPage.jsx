@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import TimeRemaining from "../components/TimeRemaining";
 import TimeStarted from "../components/TimeStarted";
@@ -6,8 +6,12 @@ import CandidateCard from "../components/CandidateCard";
 import VotingPopUp from "../components/VotingPopUp";
 import ProfileDisplay from "../components/ProfileDisplay";
 import { API_BASE_URL } from "../config/api";
+import axios from "axios";
+import { UserContext } from "../context/UserContext";
+import Swal from "sweetalert2";
 
 const UserElectionPage = () => {
+    const { userId } = useContext(UserContext);
     const navigate = useNavigate();
 
     const electionId = useParams().id;
@@ -15,31 +19,56 @@ const UserElectionPage = () => {
     const [photo_url_list, setPhoto_url_list] = useState([]);
     const [full_name_list, setFull_name_list] = useState([]);
     const [saying_list, setSaying_list] = useState([]);
+    const [candidate_id_list, setCandidate_id_list] = useState([]);
 
     const [election, setElection] = useState([]);
 
     const [trigger, setTrigger] = useState(false);
 
-    const validVoterId = 1234;
     const [voterId, setVoterId] = useState(0);
+    const [invalidVoterError, setInvalidVoterError] = useState("");
+    const [voterValid, setVoterValid] = useState(false);
 
-    const [validVoter, setValidVoter] = useState(false);
+    const [selectedCandidateName, setSelectedCandidateName] = useState(null);
+    const [selectedCandidateId, setSelectedCandidateId] = useState(null);
 
     const handleOpenPopUp = () => {
         setTrigger(true);
     };
     const handleClosePopUp = () => {
         setTrigger(false);
+        setVoterId(0);
+        setInvalidVoterError("");
+        setVoterValid(false);
+        setSelectedCandidateName(null);
+        setSelectedCandidateId(null);
     };
 
     const handleVoterValidation = () => {
-        if (parseInt(voterId) == validVoterId) {
-            setValidVoter(true);
-            console.log(voterId);
-            alert("Voter vaild");
-        } else {
-            alert("Voter not valid.");
-        }
+        axios
+            .post(`${API_BASE_URL}/voter_id_retrieve`, {
+                user_id: userId,
+            })
+            .then((response) => {
+                if (response.data.success) {
+                    const voterData = response.data.data;
+                    if (voterData.voter_id === voterId) {
+                        setVoterValid(true);
+                        setInvalidVoterError("");
+                    } else {
+                        setVoterValid(false);
+                        setInvalidVoterError(
+                            "Invalid Voter ID. Please try again."
+                        );
+                    }
+                } else {
+                    setInvalidVoterError("Error retrieving voter data.");
+                }
+            })
+            .catch((error) => {
+                console.error("Error validating voter ID:", error);
+                setInvalidVoterError("An error occurred. Please try again.");
+            });
     };
 
     useEffect(() => {
@@ -65,6 +94,8 @@ const UserElectionPage = () => {
         fetchElection();
     }, [electionId]);
 
+    useEffect(() => {}, [userId]);
+
     useEffect(() => {
         if (election.photo_url_list) {
             const urls = election.photo_url_list
@@ -84,6 +115,15 @@ const UserElectionPage = () => {
     }, [election.candidate_list]);
 
     useEffect(() => {
+        if (election.candidate_id_list) {
+            const candidates = election.candidate_id_list
+                .split("|")
+                .filter((candidate) => candidate.trim());
+            setCandidate_id_list(candidates);
+        }
+    }, [election.candidate_id_list]);
+
+    useEffect(() => {
         if (election.saying_list) {
             const sayings = election.saying_list
                 .split("|")
@@ -96,26 +136,148 @@ const UserElectionPage = () => {
         navigate("/home");
     };
 
+    const handleSelectedCandidateName = (candidateName, candidateId) => {
+        setSelectedCandidateName(candidateName);
+        setSelectedCandidateId(candidateId);
+    };
+
+    const handleElectionVoting = (candidateName, candidatePicture) => {
+        // Check if user has already voted
+        axios.post(`${API_BASE_URL}/check_vote_left`, {
+            voter_id: voterId,
+            election_id: electionId,
+        });
+
+        if (!selectedCandidateName || !selectedCandidateId) {
+            Swal.fire({
+                title: "Please select a candidate",
+                color: "white",
+                icon: "warning",
+                iconColor: "#29142e",
+                background: "#ab63bb",
+                showCancelButton: false,
+                confirmButtonColor: "#29142e",
+            });
+            return;
+        }
+        Swal.fire({
+            title: `Confirm to vote ${candidateName}?`,
+            text: "Vote cannot be changed or reversed.",
+            imageUrl: candidatePicture,
+            imageAlt: candidateName,
+            imageWidth: 150,
+            imageHeight: 150,
+            color: "white",
+            showCancelButton: true,
+            confirmButtonColor: "green",
+            cancelButtonColor: "red",
+            confirmButtonText: "VOTE",
+            cancelButtonText: "BACK",
+            background: "#29142e",
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+        }).then((result) => {
+            if (result.isConfirmed) {
+                axios
+                    .post(`${API_BASE_URL}/vote`, {
+                        election_id: electionId,
+                        candidate_id: selectedCandidateId,
+                        user_id: userId,
+                        voter_id: voterId,
+                    })
+                    .then((response) => {
+                        if (response.data.success) {
+                            Swal.fire({
+                                title: "Vote Counted!",
+                                color: "white",
+                                text: "Your vote has been successfully registered.",
+                                icon: "success",
+                                iconColor: "lightgreen",
+                                background: "#29142e",
+                            });
+                        }
+                        window.location.reload();
+                    })
+                    .catch((error) => {
+                        console.error("Error voting: ", error);
+                        Swal.fire({
+                            title: "Invalid Vote",
+                            color: "white",
+                            text: error.response.data.message,
+                            icon: "error",
+                            iconColor: "red",
+                            background: "#29142e",
+                        });
+                    });
+            }
+        });
+    };
+
     return (
         <div className="min-h-screen bg-[#29142e] flex flex-col ">
-            <VotingPopUp trigger={trigger} handleClosePopUp={handleClosePopUp}>
-                {validVoter ? (
+            <VotingPopUp
+                showPopUp={trigger}
+                handleClosePopUp={handleClosePopUp}>
+                {voterValid ? (
                     <div className="">
-                        <p className="text-white font-bold text-2xl">
-                            VOTE FOR :
+                        <p className="text-[#29142e] font-bold text-2xl">
+                            Candidates :
                         </p>
                         <div className="candidates-groups flex justify-around mt-4">
                             {photo_url_list.map((photo_url, index) => (
                                 <div
                                     key={index}
-                                    className="flex flex-col items-center gap-4">
+                                    className="flex flex-col items-center gap-4 cursor-pointer"
+                                    onClick={() =>
+                                        handleSelectedCandidateName(
+                                            full_name_list[index],
+                                            candidate_id_list[index]
+                                        )
+                                    }>
                                     <ProfileDisplay
                                         image_url={photo_url}
                                         sizes={{ width: 100, height: 100 }}
+                                        isSelected={
+                                            selectedCandidateName ===
+                                            full_name_list[index]
+                                        }
+                                        className={`${
+                                            selectedCandidateName ===
+                                            full_name_list[index]
+                                                ? "border-8 border-[#6a3c75] rounded-full shadow-2xl shadow-[#dacedc]"
+                                                : ""
+                                        }`}
                                     />
-                                    <span>{full_name_list[index]}</span>
+
+                                    <span className="text-white font-bold text-2xl">
+                                        {full_name_list[index]}
+                                    </span>
                                 </div>
                             ))}
+                        </div>
+                        <div className="flex flex-col items-center pt-8">
+                            <span className="text-[#29142e]">
+                                Selected Candidate:{" "}
+                                <span className="font-bold text-2xl">
+                                    {selectedCandidateName}
+                                </span>
+                            </span>
+                        </div>
+                        <div className="vote-btn flex justify-center items-center mt-8">
+                            <button
+                                onClick={() =>
+                                    handleElectionVoting(
+                                        selectedCandidateName,
+                                        photo_url_list[
+                                            full_name_list.indexOf(
+                                                selectedCandidateName
+                                            )
+                                        ]
+                                    )
+                                }
+                                className="text-3xl text-white font-bold bg-[#29142e] shadow-md shadow-[#29142e] px-4 py-2 hover:bg-white hover:text-[#29142e] hover:cursor-pointer rounded-xl hover:shadow-md hover:shadow-white">
+                                VOTE
+                            </button>
                         </div>
                     </div>
                 ) : (
@@ -123,10 +285,15 @@ const UserElectionPage = () => {
                         <p className="text-2xl font-bold text-[#29142e]">
                             To Authorize, Enter voter ID:
                         </p>
+                        <p>Check Voter Portal</p>
+
+                        <p className="text-red-600 font-bold">
+                            {invalidVoterError}
+                        </p>
                         <div className="flex gap-4 items-center justify-center">
                             <input
                                 type="number"
-                                className="border-white border-4 h-10 p-4 text-xl font-bold rounded-lg"
+                                className="border-white border-4 h-10 p-4 text-xl font-bold rounded-lg [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                 onChange={(e) => setVoterId(e.target.value)}
                                 value={voterId}
                             />
