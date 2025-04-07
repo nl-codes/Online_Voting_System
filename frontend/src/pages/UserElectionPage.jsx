@@ -94,43 +94,21 @@ const UserElectionPage = () => {
         fetchElection();
     }, [electionId]);
 
-    useEffect(() => {}, [userId]);
-
     useEffect(() => {
-        if (election.photo_url_list) {
-            const urls = election.photo_url_list
-                .split("|")
-                .filter((url) => url.trim());
-            setPhoto_url_list(urls);
-        }
-    }, [election.photo_url_list]);
+        if (election) {
+            // Process all lists at once
+            const processListData = (data, separator = "|") => {
+                return data
+                    ? data.split(separator).filter((item) => item.trim())
+                    : [];
+            };
 
-    useEffect(() => {
-        if (election.candidate_list) {
-            const candidates = election.candidate_list
-                .split("|")
-                .filter((candidate) => candidate.trim());
-            setFull_name_list(candidates);
+            setPhoto_url_list(processListData(election.photo_url_list));
+            setFull_name_list(processListData(election.candidate_list));
+            setCandidate_id_list(processListData(election.candidate_id_list));
+            setSaying_list(processListData(election.saying_list));
         }
-    }, [election.candidate_list]);
-
-    useEffect(() => {
-        if (election.candidate_id_list) {
-            const candidates = election.candidate_id_list
-                .split("|")
-                .filter((candidate) => candidate.trim());
-            setCandidate_id_list(candidates);
-        }
-    }, [election.candidate_id_list]);
-
-    useEffect(() => {
-        if (election.saying_list) {
-            const sayings = election.saying_list
-                .split("|")
-                .filter((saying) => saying.trim());
-            setSaying_list(sayings);
-        }
-    }, [election.saying_list]);
+    }, [election]);
 
     const handleBack = () => {
         navigate("/home");
@@ -142,12 +120,6 @@ const UserElectionPage = () => {
     };
 
     const handleElectionVoting = (candidateName, candidatePicture) => {
-        // Check if user has already voted
-        axios.post(`${API_BASE_URL}/check_vote_left`, {
-            voter_id: voterId,
-            election_id: electionId,
-        });
-
         if (!selectedCandidateName || !selectedCandidateId) {
             Swal.fire({
                 title: "Please select a candidate",
