@@ -304,6 +304,7 @@ app.get("/view_election_full/:id", async (req, res) => {
             e.position,
             GROUP_CONCAT(c.photo_url SEPARATOR '|') AS photo_url_list, 
             GROUP_CONCAT(c.full_name SEPARATOR '|') AS candidate_list, 
+            GROUP_CONCAT(c.id SEPARATOR '|') AS candidate_id_list, 
             GROUP_CONCAT(c.saying SEPARATOR '|') AS saying_list, 
             GROUP_CONCAT(COALESCE(vote_count, 0) SEPARATOR '|') AS votes_list 
         FROM election_candidate ec 
@@ -365,6 +366,63 @@ app.post("/assign_candidate", async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Error assigning candidate",
+            error: err.message,
+        });
+    }
+});
+
+app.post("/check_vote_left", async (req, res) => {
+    const { voter_id, election_id } = req.body;
+
+    if (!voter_id || !election_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Voter ID, Election ID are required",
+        });
+    }
+    try {
+        const [voterExistResult] = await pool.execute(
+            "SELECT * from voter_card WHERE voter_id = ?",
+            [voter_id]
+        );
+        if (voterExistResult.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Voter ID isn't registered",
+            });
+        }
+
+        const [electionExistResult] = await pool.execute(
+            "SELECT * from election WHERE id = ?",
+            [election_id]
+        );
+        if (electionExistResult.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Election ID doesn't exist",
+            });
+        }
+
+        const [voteResult] = await pool.execute(
+            "SELECT * FROM votes WHERE voter_id = ? AND election_id = ?",
+            [voter_id, election_id]
+        );
+        if (voteResult.length > 0) {
+            return res.status(200).json({
+                success: false,
+                message: "User has already voted",
+            });
+        } else {
+            return res.status(200).json({
+                success: true,
+                message: "User has not voted yet",
+            });
+        }
+    } catch (error) {
+        console.error("Error checking vote:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error checking vote",
             error: err.message,
         });
     }

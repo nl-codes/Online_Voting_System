@@ -2,27 +2,27 @@ import React, { useEffect, useState } from "react";
 import { UserContext } from "./UserContext";
 
 const UserProvider = ({ children }) => {
-    // Initialize with localStorage value or null
+    // Initialize with sessionStorage value or null
     const [userId, setUserId] = useState(() => {
         try {
-            const storedUserId = localStorage.getItem("userId");
+            const storedUserId = sessionStorage.getItem("userId");
             return storedUserId ? storedUserId : null;
         } catch (error) {
-            console.error("Error reading from localStorage:", error);
+            console.error("Error reading from sessionStorage:", error);
             return null;
         }
     });
 
-    // Update localStorage when userId changes
+    // Update sessionStorage when userId changes
     useEffect(() => {
         try {
             if (userId) {
-                localStorage.setItem("userId", userId);
+                sessionStorage.setItem("userId", userId);
             } else {
-                localStorage.removeItem("userId");
+                sessionStorage.removeItem("userId");
             }
         } catch (error) {
-            console.error("Error writing to localStorage:", error);
+            console.error("Error writing to sessionStorage:", error);
         }
     }, [userId]);
 
