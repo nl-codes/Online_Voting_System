@@ -11,6 +11,10 @@ import {
     uploadUserProfile,
 } from "./middleware/multerConfig.js";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -715,6 +719,42 @@ app.post("/voter_id_retrieve", async (req, res) => {
             success: false,
             message: "Database error",
             error: err.message,
+        });
+    }
+});
+
+app.post("/admin_login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (email === "" || password === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required",
+            });
+        }
+
+        if (
+            email === process.env.ADMIN_EMAIL &&
+            password === process.env.ADMIN_PASSWORD
+        ) {
+            return res.status(200).json({
+                success: true,
+                message: "Login successful",
+            });
+        }
+
+        // Invalid credentials
+        return res.status(401).json({
+            success: false,
+            message: "Invalid email or password",
+        });
+    } catch (error) {
+        console.error("Admin login error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: error.message,
         });
     }
 });
