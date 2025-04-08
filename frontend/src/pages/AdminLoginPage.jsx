@@ -18,6 +18,7 @@ const AdminLoginPage = () => {
             });
 
             if (response.data.success) {
+                sessionStorage.setItem("adminId", response.data.admin_id);
                 navigate("/sec/admin/dashboard");
             } else {
                 Swal.fire({
