@@ -17,7 +17,10 @@ const App = () => {
             <Router>
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
-                    <Route path="/admin-login" element={<AdminLoginPage />} />
+                    <Route
+                        path="/sec/admin/login"
+                        element={<AdminLoginPage />}
+                    />
                     <Route path="/home" element={<UserDashboardPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route
