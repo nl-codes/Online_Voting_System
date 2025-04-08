@@ -6,11 +6,11 @@ const CandidateCard = ({ photo_url, full_name, saying }) => {
         <div className="flex items-center">
             <ProfileDisplay
                 image_url={photo_url}
-                sizes={{ width: 160, height: 160 }}
+                sizes={{ width: 100, height: 100 }}
             />
-            <div className="full_name-saying flex flex-col ml-8 text-white font-serif gap-8">
-                <p className="text-4xl font-bold text-[#c791d4]">{full_name}</p>
-                <p className="text-lg">{saying}</p>
+            <div className="full_name-saying flex flex-col ml-8 text-white font-serif gap-2">
+                <p className="text-3xl font-bold text-[#c791d4]">{full_name}</p>
+                <p className="text-md w-100">{saying}</p>
             </div>
         </div>
     );

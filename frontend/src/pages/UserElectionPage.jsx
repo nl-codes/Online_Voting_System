@@ -9,6 +9,7 @@ import { API_BASE_URL } from "../config/api";
 import axios from "axios";
 import { UserContext } from "../context/UserContext";
 import Swal from "sweetalert2";
+import VoteCountDispaly from "../components/VoteCountDispaly";
 
 const UserElectionPage = () => {
     const { userId } = useContext(UserContext);
@@ -20,6 +21,7 @@ const UserElectionPage = () => {
     const [full_name_list, setFull_name_list] = useState([]);
     const [saying_list, setSaying_list] = useState([]);
     const [candidate_id_list, setCandidate_id_list] = useState([]);
+    const [votes_received_list, setVotes_received_list] = useState([]);
 
     const [election, setElection] = useState([]);
 
@@ -107,6 +109,7 @@ const UserElectionPage = () => {
             setFull_name_list(processListData(election.candidate_list));
             setCandidate_id_list(processListData(election.candidate_id_list));
             setSaying_list(processListData(election.saying_list));
+            setVotes_received_list(processListData(election.votes_list));
         }
     }, [election]);
 
@@ -319,7 +322,7 @@ const UserElectionPage = () => {
                     </button>
                 </div>
             </div>
-            <div className="candidates-graphs flex itesm-center justify-center gap-8">
+            <div className="candidates-graphs flex pl-33 gap-8">
                 <div className="candidates-lists flex flex-col justify-center gap-8 p-4">
                     <p className="text-2xl text-white font-serif  font-bold">
                         Candidate list :
@@ -333,7 +336,10 @@ const UserElectionPage = () => {
                         />
                     ))}
                 </div>
-                <div className="w-200 bg-cyan-500">Graphs</div>
+
+                <VoteCountDispaly
+                    data={{ votes: votes_received_list, names: full_name_list }}
+                />
             </div>
         </div>
     );
