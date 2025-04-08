@@ -10,6 +10,7 @@ import UserElectionPage from "./pages/UserElectionPage";
 import VoterCardPortalPage from "./pages/VoterCardPortalPage";
 import UserProvider from "./context/UserProvider";
 import AdminLoginPage from "./pages/AdminLoginPage";
+import AdminVerifyVoterPage from "./pages/AdminVerifyVoterPage";
 
 const App = () => {
     return (
@@ -26,6 +27,10 @@ const App = () => {
                     <Route
                         path="/sec/admin/dashboard"
                         element={<AdminDashboardPage />}
+                    />
+                    <Route
+                        path="/sec/admin/verify/voter"
+                        element={<AdminVerifyVoterPage />}
                     />
                     <Route
                         path="/election_page/:id"
