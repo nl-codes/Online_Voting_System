@@ -745,7 +745,7 @@ app.post("/admin_login", async (req, res) => {
         }
 
         // Invalid credentials
-        return res.status(401).json({
+        return res.status(200).json({
             success: false,
             message: "Invalid email or password",
         });
