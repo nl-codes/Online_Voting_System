@@ -9,6 +9,7 @@ import UserDashboardPage from "./pages/UserDashboardPage";
 import UserElectionPage from "./pages/UserElectionPage";
 import VoterCardPortalPage from "./pages/VoterCardPortalPage";
 import UserProvider from "./context/UserProvider";
+import AdminLoginPage from "./pages/AdminLoginPage";
 
 const App = () => {
     return (
@@ -16,6 +17,7 @@ const App = () => {
             <Router>
                 <Routes>
                     <Route path="/" element={<LandingPage />} />
+                    <Route path="/admin-login" element={<AdminLoginPage />} />
                     <Route path="/home" element={<UserDashboardPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route
