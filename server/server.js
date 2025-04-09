@@ -871,3 +871,32 @@ app.post("/admin_login", async (req, res) => {
         });
     }
 });
+
+app.get("/unverified_voter_list", async (req, res) => {
+    try {
+        const sql =
+            "SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name, u.dob, v.citizenship_number, v.phone_number, v.citizenship_front_pic, v.citizenship_back_pic FROM user_detail AS u JOIN voter_card AS v ON u.id = v.user_id WHERE v.verification_status = 0 GROUP BY v.user_id;";
+
+        const [result] = await pool.execute(sql);
+
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "All applied users are verified",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "List of unverified users",
+            data: result,
+        });
+    } catch (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Database error",
+            error: err.message,
+        });
+    }
+});
