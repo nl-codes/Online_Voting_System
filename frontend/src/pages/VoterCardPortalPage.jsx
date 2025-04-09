@@ -81,7 +81,7 @@ const VoterCardPortalPage = () => {
                                 {voterStatus.voterId || "Not registered"}
                             </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex gap-14 mb-4">
                             <span>Status :</span>
                             <span
                                 className={`font-bold ${
@@ -94,6 +94,11 @@ const VoterCardPortalPage = () => {
                                 {voterStatus.status.toUpperCase()}
                             </span>
                         </div>
+                        {voterStatus.status.toLowerCase() === "rejected" && (
+                            <span className="text-yellow-400 font-bold">
+                                Invalid documents! Please submit again
+                            </span>
+                        )}
                     </div>
                 </div>
 
