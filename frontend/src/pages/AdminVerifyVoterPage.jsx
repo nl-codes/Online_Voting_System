@@ -16,10 +16,11 @@ const AdminVerifyVoterPage = () => {
                     `${API_BASE_URL}/unverified_voter_list`
                 );
                 if (response.data.success) {
-                    setUnVerifiedUserDataList(response.data.data);
+                    setUnVerifiedUserDataList(response.data.data || []);
                 }
             } catch (error) {
                 console.error("Error fetching unverified voters:", error);
+                setUnVerifiedUserDataList([]);
             } finally {
                 setIsLoading(false);
             }
@@ -41,11 +42,9 @@ const AdminVerifyVoterPage = () => {
                         Verify User Details
                     </p>
                     <div>
-                        <p
-                            className="
-                        my-2">
+                        <p className="my-2">
                             Remaining User Verifications:{" "}
-                            {unVerifiedUserDataList.length}
+                            {unVerifiedUserDataList?.length || 0}
                         </p>
                         {isLoading ? (
                             <LoadingDots />
@@ -61,7 +60,9 @@ const AdminVerifyVoterPage = () => {
                                 )}
                             </div>
                         ) : (
-                            <p>No pending verifications</p>
+                            <p className="text-center font-bold text-2xl text-amber-400">
+                                No pending verifications
+                            </p>
                         )}
                     </div>
                 </div>

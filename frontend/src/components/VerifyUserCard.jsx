@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import ButtonVerificationRejection from "./ButtonVerificationRejection";
 import axios from "axios";
+import { API_BASE_URL } from "../config/api";
+import Swal from "sweetalert2";
 
 const VerifyUserCard = ({ userData }) => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -38,19 +40,96 @@ const VerifyUserCard = ({ userData }) => {
         return `${years} years ${months} months`;
     };
 
-    const handleVerify = () => {
-        if (!userData.citizenship_number) {
+    const handleVerify = async () => {
+        if (!userData.id) {
             return;
         }
 
-        // axios.post
+        try {
+            const response = await axios.post(`${API_BASE_URL}/verify_voter`, {
+                user_id: userData.id,
+            });
+
+            if (response.data.success) {
+                await Swal.fire({
+                    title: "Verified!",
+                    text: "User has been successfully verified.",
+                    icon: "success",
+                    iconColor: "lightgreen",
+                    color: "white",
+                    background: "#29142e",
+                    confirmButtonColor: "green",
+                });
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    title: "Error!",
+                    text: response.data.message,
+                    icon: "error",
+                    iconColor: "red",
+                    color: "white",
+                    background: "#29142e",
+                    confirmButtonColor: "#7d4788",
+                });
+            }
+        } catch (error) {
+            console.error("Verification error:", error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to verify user. Please try again.",
+                icon: "error",
+                iconColor: "red",
+                color: "white",
+                background: "#29142e",
+                confirmButtonColor: "#7d4788",
+            });
+        }
     };
-    const handleReject = () => {
-        if (!userData.citizenship_number) {
+
+    const handleReject = async () => {
+        if (!userData.id) {
             return;
         }
 
-        // axios.post
+        try {
+            const response = await axios.post(`${API_BASE_URL}/reject_voter`, {
+                user_id: userData.id,
+            });
+
+            if (response.data.success) {
+                await Swal.fire({
+                    title: "Rejected!",
+                    text: "User verification has been rejected.",
+                    icon: "warning",
+                    iconColor: "orange",
+                    color: "white",
+                    background: "#29142e",
+                    confirmButtonColor: "red",
+                });
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    title: "Error!",
+                    text: response.data.message,
+                    icon: "error",
+                    iconColor: "red",
+                    color: "white",
+                    background: "#29142e",
+                    confirmButtonColor: "#7d4788",
+                });
+            }
+        } catch (error) {
+            console.error("Rejection error:", error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to reject user. Please try again.",
+                icon: "error",
+                iconColor: "red",
+                color: "white",
+                background: "#29142e",
+                confirmButtonColor: "#7d4788",
+            });
+        }
     };
 
     return (
