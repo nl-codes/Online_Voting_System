@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { API_BASE_URL } from "../config/api";
 
-const VoterForm = ({ userId, onSubmitSuccess }) => {
+const VoterForm = ({ userId, status, onSubmitSuccess }) => {
     const [formData, setFormData] = useState({
         citizenship_number: "",
         phone_number: "",
@@ -164,7 +165,7 @@ const VoterForm = ({ userId, onSubmitSuccess }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!validateForm) {
+        if (!validateForm()) {
             return;
         }
 
@@ -185,15 +186,20 @@ const VoterForm = ({ userId, onSubmitSuccess }) => {
         formDataToSend.append("user_id", formData.user_id);
 
         try {
-            const response = await fetch(
-                "http://localhost:5000/voter_card_register",
-                {
+            let response;
+            if (status.toLowerCase() === "unapplied") {
+                response = await fetch(`${API_BASE_URL}/voter_card_register`, {
                     method: "POST",
                     body: formDataToSend,
-                }
-            );
+                });
+            } else if (status.toLowerCase() === "rejected") {
+                response = await fetch(`${API_BASE_URL}/voter_card_register`, {
+                    method: "PUT",
+                    body: formDataToSend,
+                });
+            }
 
-            if (response.ok) {
+            if (response && response.ok) {
                 const data = await response.json();
                 console.log(data);
                 alert("Voter card registration successful!");

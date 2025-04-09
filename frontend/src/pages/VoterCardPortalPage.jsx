@@ -60,29 +60,6 @@ const VoterCardPortalPage = () => {
         }
     }, [userId]);
 
-    // Using dummy data for testing
-    // useEffect(() => {
-    //     setVoterStatus({
-    //         isRegistered: true,
-    //         voterId: 123456,
-    //         status: "verified",
-    //         voterData: {
-    //             voter_id: 123456,
-    //             name: "Kuchiki Rukia",
-    //             phone_number: 12234567,
-    //             citizenship_number: "123456--45",
-    //         },
-    //     });
-    // }, []);
-
-    // const voterData = {
-    //     voter_id: 123456,
-    //     name: "Kuchiki Rukia",
-    //     phone_number: 12234567,
-    //     citizenship_number: "123456--45",
-    //     image_url: "Aello",
-    // };
-
     const handleBack = () => navigate("/home");
 
     return (
@@ -104,7 +81,7 @@ const VoterCardPortalPage = () => {
                                 {voterStatus.voterId || "Not registered"}
                             </span>
                         </div>
-                        <div className="flex justify-between">
+                        <div className="flex gap-14 mb-4">
                             <span>Status :</span>
                             <span
                                 className={`font-bold ${
@@ -117,6 +94,11 @@ const VoterCardPortalPage = () => {
                                 {voterStatus.status.toUpperCase()}
                             </span>
                         </div>
+                        {voterStatus.status.toLowerCase() === "rejected" && (
+                            <span className="text-yellow-400 font-bold">
+                                Invalid documents! Please submit again
+                            </span>
+                        )}
                     </div>
                 </div>
 
@@ -134,6 +116,7 @@ const VoterCardPortalPage = () => {
                         ) : (
                             <VoterForm
                                 userId={userId}
+                                status={voterStatus.status}
                                 onSubmitSuccess={() => window.location.reload()}
                             />
                         )}

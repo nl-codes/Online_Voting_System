@@ -11,6 +11,10 @@ import {
     uploadUserProfile,
 } from "./middleware/multerConfig.js";
 
+import dotenv from "dotenv";
+
+dotenv.config();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -672,6 +676,109 @@ app.post(
     }
 );
 
+app.put(
+    "/voter_card_register",
+    uploadCitizenship.fields([
+        { name: "citizenship_front_pic", maxCount: 1 },
+        { name: "citizenship_back_pic", maxCount: 1 },
+    ]),
+    async (req, res) => {
+        try {
+            const { citizenship_number, phone_number, user_id } = req.body;
+
+            if (!citizenship_number || !phone_number || !user_id) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Missing required fields",
+                });
+            }
+
+            // Validate Nepal phone number
+            const nepalPhoneRegex = /^9[7-8][0-9]{8}$/;
+            if (!nepalPhoneRegex.test(phone_number)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid Nepal phone number format",
+                });
+            }
+
+            // Ensure images were uploaded
+            if (
+                !req.files ||
+                !req.files.citizenship_front_pic ||
+                !req.files.citizenship_back_pic
+            ) {
+                return res.status(400).json({
+                    success: false,
+                    message:
+                        "Both citizenship front and back images are required",
+                });
+            }
+
+            const citizenship_front_pic =
+                req.files.citizenship_front_pic[0].path;
+            const citizenship_back_pic = req.files.citizenship_back_pic[0].path;
+
+            // Check if voter card exists for the user
+            const [existingCard] = await pool.execute(
+                "SELECT * FROM voter_card WHERE user_id = ?",
+                [user_id]
+            );
+
+            if (existingCard.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No voter card found for this user",
+                });
+            }
+
+            // Update voter card
+            await pool.execute(
+                `UPDATE voter_card 
+                SET citizenship_number = ?,
+                    phone_number = ?,
+                    citizenship_front_pic = ?,
+                    citizenship_back_pic = ?,
+                    verification_status = 0
+                WHERE user_id = ?`,
+                [
+                    citizenship_number,
+                    phone_number,
+                    citizenship_front_pic,
+                    citizenship_back_pic,
+                    user_id,
+                ]
+            );
+
+            // Get updated voter card details
+            const [updatedCard] = await pool.execute(
+                "SELECT * FROM voter_card WHERE user_id = ?",
+                [user_id]
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: "Voter Card updated successfully",
+                data: {
+                    voter_id: updatedCard[0].voter_id,
+                    citizenship_number,
+                    phone_number,
+                    citizenship_front_pic,
+                    citizenship_back_pic,
+                    verification_status: 0,
+                },
+            });
+        } catch (err) {
+            console.error("Server error:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Server error",
+                error: err.message,
+            });
+        }
+    }
+);
+
 app.post("/voter_id_retrieve", async (req, res) => {
     try {
         const { user_id } = req.body;
@@ -681,36 +788,194 @@ app.post("/voter_id_retrieve", async (req, res) => {
         const [result] = await pool.execute(sql, [user_id]);
 
         if (result.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 success: false,
-                message: "Voter ID not found",
+                message: "Voter ID hasn't been applied yet.",
                 status: "unapplied",
             });
         }
 
-        if (result[0].verification_status != 1) {
-            return res.status(401).json({
+        if (result[0].verification_status == 0) {
+            return res.status(200).json({
                 success: false,
                 message: "Voter ID hasn't been verified yet.",
                 status: "pending",
             });
         }
 
+        if (result[0].verification_status == 2) {
+            return res.status(200).json({
+                success: false,
+                message: "Invalid Documents.",
+                status: "rejected",
+            });
+        }
+        if (result[0].verification_status == 1) {
+            return res.status(200).json({
+                success: true,
+                message: "Voter found",
+                voter_id: result[0].voter_id,
+                status: "verified",
+                data: {
+                    voter_id: result[0].voter_id,
+                    full_name: result[0].full_name,
+                    photo_url: result[0].photo_url,
+                    citizenship_number: result[0].citizenship_number,
+                    phone_number: result[0].phone_number,
+                },
+            });
+        }
+    } catch (err) {
+        console.error("Database error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Database error",
+            error: err.message,
+        });
+    }
+});
+
+app.post("/admin_login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (email === "" || password === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Email and password are required",
+            });
+        }
+
+        if (
+            email === process.env.ADMIN_EMAIL &&
+            password === process.env.ADMIN_PASSWORD
+        ) {
+            return res.status(200).json({
+                success: true,
+                message: "Login successful",
+                admin_id: process.env.ADMIN_ID,
+            });
+        }
+
+        // Invalid credentials
+        return res.status(200).json({
+            success: false,
+            message: "Invalid email or password",
+        });
+    } catch (error) {
+        console.error("Admin login error:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+            error: error.message,
+        });
+    }
+});
+
+app.get("/unverified_voter_list", async (req, res) => {
+    try {
+        const sql =
+            "SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name, u.id, u.dob, v.citizenship_number, v.phone_number, v.citizenship_front_pic, v.citizenship_back_pic FROM user_detail AS u JOIN voter_card AS v ON u.id = v.user_id WHERE v.verification_status = 0 GROUP BY v.user_id;";
+
+        const [result] = await pool.execute(sql);
+
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: true,
+                message: "All applied users are verified",
+            });
+        }
+
         return res.status(200).json({
             success: true,
-            message: "Voter found",
-            voter_id: result[0].voter_id,
-            status: "verified",
-            data: {
-                voter_id: result[0].voter_id,
-                full_name: result[0].full_name,
-                photo_url: result[0].photo_url,
-                citizenship_number: result[0].citizenship_number,
-                phone_number: result[0].phone_number,
-            },
+            message: "List of unverified users",
+            data: result,
         });
     } catch (err) {
         console.error("Database error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Database error",
+            error: err.message,
+        });
+    }
+});
+
+app.post("/verify_voter", async (req, res) => {
+    try {
+        const { user_id } = req.body;
+
+        if (user_id === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Missing user Id field",
+            });
+        }
+        const checkUserSql = `SELECT verification_status FROM voter_card WHERE user_id = ?`;
+        const [checkUserResult] = await pool.execute(checkUserSql, [user_id]);
+        if (checkUserResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "User hasn't applied for voter Id",
+            });
+        }
+
+        if (checkUserResult[0].verification_status === 1) {
+            return res.status(200).json({
+                success: false,
+                message: "User is already verified",
+            });
+        }
+        const verifyUserSql = `UPDATE voter_card SET verification_status = 1 WHERE user_id = ?`;
+
+        await pool.execute(verifyUserSql, [user_id]);
+
+        return res.status(200).json({
+            success: true,
+            message: "User verified successfully",
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Database error",
+            error: err.message,
+        });
+    }
+});
+app.post("/reject_voter", async (req, res) => {
+    try {
+        const { user_id } = req.body;
+
+        if (user_id === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Missing user Id field",
+            });
+        }
+        const checkUserSql = `SELECT verification_status FROM voter_card WHERE user_id = ?`;
+        const [checkUserResult] = await pool.execute(checkUserSql, [user_id]);
+        if (checkUserResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "User hasn't applied for voter Id",
+            });
+        }
+
+        if (checkUserResult[0].verification_status === 2) {
+            return res.status(200).json({
+                success: false,
+                message: "User is already rejected",
+            });
+        }
+        const rejectUserSql = `UPDATE voter_card SET verification_status = 2 WHERE user_id = ?`;
+
+        await pool.execute(rejectUserSql, [user_id]);
+
+        return res.status(200).json({
+            success: true,
+            message: "User rejected successfully",
+        });
+    } catch (err) {
         return res.status(500).json({
             success: false,
             message: "Database error",
