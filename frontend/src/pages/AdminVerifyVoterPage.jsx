@@ -31,40 +31,31 @@ const AdminVerifyVoterPage = () => {
     return (
         <div className="bg-[#29142e] min-h-screen min-w-screen flex pr-8">
             <AdminSidebar />
-            <div className="flex flex-col p-4 w-full">
-                <div className="flex justify-end">
-                    <button className="hover:bg-[#7d4788] text-white text-2xl font-bold py-2 px-4 rounded">
-                        Log out
-                    </button>
-                </div>
-                <div className="flex flex-col justify-center text-white main-page-content">
-                    <p className="text-center text-2xl font-bold">
-                        Verify User Details
+            <div className="flex flex-col pt-10 pl-4 w-full text-white main-page-content">
+                <p className="text-center text-2xl font-bold">
+                    Verify User Details
+                </p>
+                <div>
+                    <p className="my-2">
+                        Remaining User Verifications:{" "}
+                        {unVerifiedUserDataList?.length || 0}
                     </p>
-                    <div>
-                        <p className="my-2">
-                            Remaining User Verifications:{" "}
-                            {unVerifiedUserDataList?.length || 0}
+                    {isLoading ? (
+                        <LoadingDots />
+                    ) : unVerifiedUserDataList.length > 0 ? (
+                        <div className="flex flex-col gap-4">
+                            {unVerifiedUserDataList.map((userData, index) => (
+                                <VerifyUserCard
+                                    key={userData.voter_id || index}
+                                    userData={userData}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-center font-bold text-2xl text-amber-400">
+                            No pending verifications
                         </p>
-                        {isLoading ? (
-                            <LoadingDots />
-                        ) : unVerifiedUserDataList.length > 0 ? (
-                            <div className="flex flex-col gap-4">
-                                {unVerifiedUserDataList.map(
-                                    (userData, index) => (
-                                        <VerifyUserCard
-                                            key={userData.voter_id || index}
-                                            userData={userData}
-                                        />
-                                    )
-                                )}
-                            </div>
-                        ) : (
-                            <p className="text-center font-bold text-2xl text-amber-400">
-                                No pending verifications
-                            </p>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
