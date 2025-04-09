@@ -77,6 +77,32 @@ const AdminAssignCandidates = () => {
         }
 
         try {
+            // Check if candidates are already assigned
+            const response = await axios.post(
+                `${API_BASE_URL}/check_candidates_assigned`,
+                { election_id: selectedElection.id }
+            );
+
+            if (response.data.success) {
+                // Candidates already assigned
+                const assignedCandidates = candidates.filter((candidate) =>
+                    response.data.data.includes(candidate.id)
+                );
+
+                setSelectedCandidates(assignedCandidates);
+
+                Swal.fire({
+                    title: "Info",
+                    text: "Candidates are already assigned to this election",
+                    icon: "info",
+                    iconColor: "#c791d4",
+                    color: "white",
+                    background: "#29142e",
+                    confirmButtonColor: "#7d4788",
+                });
+                return;
+            }
+
             // Use Promise.all to handle multiple requests concurrently
             await Promise.all(
                 selectedCandidates.map((candidate) =>
