@@ -5,8 +5,12 @@ const AdminSidebar = () => {
     return (
         <div className="bg-white rounded-2xl w-70 flex flex-col items-center py-20 gap-6">
             <AdminSidebarLinks
-                btnName={"View Election"}
+                btnName={"DASHBOARD"}
                 navigationLink={"/sec/admin/dashboard"}
+            />
+            <AdminSidebarLinks
+                btnName={"View Election"}
+                navigationLink={"/sec/admin/view/election"}
             />
             <AdminSidebarLinks
                 btnName={"Create Election"}

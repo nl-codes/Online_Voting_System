@@ -19,8 +19,29 @@ const AdminDashboardPage = () => {
                         Log out
                     </button>
                 </div>
+                <div className="flex flex-col justify-center items-center text-white">
+                    <p className="font-extrabold text-3xl font-serif">
+                        WELCOME TO ADMIN DASHBOARD
+                    </p>
+                    <p> You have access</p>
+                    <p>
+                        to create a new elections, view list of all the election
+                        existing or upcomming
+                    </p>
+                    <p>
+                        to create a new candidate, view list of all the
+                        candidates to exist
+                    </p>
+                    <p>
+                        Assign candidates to a election before the election
+                        starts
+                    </p>
+                    <p>
+                        Verify User documents to give them a voter ID, thus
+                        allowing them to vote on a election
+                    </p>
+                </div>
             </div>
-            <div className="flex flex-col justify-center items-center"></div>
         </div>
     );
 };
