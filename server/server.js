@@ -367,7 +367,7 @@ app.get("/get_future_elections", async (req, res) => {
 });
 
 app.get("/get_candidates_all", async (req, res) => {
-    const sql = "SELECT id, full_name FROM candidate";
+    const sql = "SELECT id, full_name, photo_url FROM candidate";
 
     try {
         const [result] = await pool.execute(sql);
