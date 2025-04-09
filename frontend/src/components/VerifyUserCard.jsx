@@ -13,6 +13,29 @@ const VerifyUserCard = ({ userData }) => {
         setSelectedImage(null);
     };
 
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+    };
+
+    const calculateAge = (birthDate) => {
+        const today = new Date();
+        const birth = new Date(birthDate);
+
+        let years = today.getFullYear() - birth.getFullYear();
+        let months = today.getMonth() - birth.getMonth();
+
+        if (months < 0 || (months === 0 && today.getDate() < birth.getDate())) {
+            years--;
+            months = 12 + months;
+        }
+
+        return `${years} years ${months} months`;
+    };
+
     return (
         <>
             <div className="border-4 border-[#7d4788] rounded-2xl px-4 py-2">
@@ -22,7 +45,13 @@ const VerifyUserCard = ({ userData }) => {
                         <span className="font-bold">{userData.full_name}</span>
                     </div>
                     <div className="flex gap-32">
-                        DOB : <span className="font-bold">{userData.dob}</span>
+                        DOB :
+                        <span className="font-bold">
+                            {formatDate(userData.dob)}
+                            <span className="ml-2 text-sm text-gray-300">
+                                ({calculateAge(userData.dob)})
+                            </span>
+                        </span>
                     </div>
                     <div className="flex gap-2">
                         Citizenship-number :{" "}
