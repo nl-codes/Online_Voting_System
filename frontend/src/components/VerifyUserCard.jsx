@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import ButtonVerificationRejection from "./ButtonVerificationRejection";
+import axios from "axios";
 
 const VerifyUserCard = ({ userData }) => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -35,6 +36,21 @@ const VerifyUserCard = ({ userData }) => {
         }
 
         return `${years} years ${months} months`;
+    };
+
+    const handleVerify = () => {
+        if (!userData.citizenship_number) {
+            return;
+        }
+
+        // axios.post
+    };
+    const handleReject = () => {
+        if (!userData.citizenship_number) {
+            return;
+        }
+
+        // axios.post
     };
 
     return (
@@ -87,7 +103,10 @@ const VerifyUserCard = ({ userData }) => {
                     <span className="text-[12px]">Click to zoom</span>
                 </div>
                 <div className="buttons">
-                    <ButtonVerificationRejection />
+                    <ButtonVerificationRejection
+                        handleVerify={handleVerify}
+                        handleReject={handleReject}
+                    />
                 </div>
             </div>
             {/* Modal for full-screen image */}
