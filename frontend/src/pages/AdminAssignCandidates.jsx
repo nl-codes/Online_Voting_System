@@ -3,6 +3,7 @@ import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import AdminSidebar from "../components/AdminSidebar";
 import ProfileDisplay from "../components/ProfileDisplay";
+import Swal from "sweetalert2";
 
 const AdminAssignCandidates = () => {
     const [elections, setElections] = useState([]);
@@ -62,6 +63,60 @@ const AdminAssignCandidates = () => {
         });
     };
 
+    const handleAssignCandidates = async () => {
+        if (!selectedElection || selectedCandidates.length === 0) {
+            Swal.fire({
+                title: "Error!",
+                text: "Please select both election and candidates",
+                icon: "error",
+                iconColor: "red",
+                color: "white",
+                background: "#29142e",
+                confirmButtonColor: "#7d4788",
+            });
+            return;
+        }
+
+        try {
+            // Use Promise.all to handle multiple requests concurrently
+            await Promise.all(
+                selectedCandidates.map((candidate) =>
+                    axios.post(`${API_BASE_URL}/assign_candidate`, {
+                        election_id: selectedElection.id,
+                        candidate_id: candidate.id,
+                    })
+                )
+            );
+
+            Swal.fire({
+                title: "Success!",
+                text: "Candidates assigned successfully",
+                icon: "success",
+                iconColor: "lightgreen",
+                color: "white",
+                background: "#29142e",
+                confirmButtonColor: "green",
+            }).then(() => {
+                // Reset selections after successful assignment
+                setSelectedElection(null);
+                setSelectedCandidates([]);
+                // Optionally refresh the page or fetch updated data
+                window.location.reload();
+            });
+        } catch (error) {
+            console.error("Error assigning candidates:", error);
+            Swal.fire({
+                title: "Error!",
+                text: "Failed to assign candidates. Please try again.",
+                icon: "error",
+                iconColor: "red",
+                color: "white",
+                background: "#29142e",
+                confirmButtonColor: "#7d4788",
+            });
+        }
+    };
+
     return (
         <div className="bg-[#29142e] min-h-screen min-w-screen flex pr-8">
             <AdminSidebar />
@@ -69,7 +124,6 @@ const AdminAssignCandidates = () => {
                 <p className="text-center text-2xl font-bold">
                     Assign Candidates to Elections
                 </p>
-
                 {/* Selected Items Display */}
                 <div className="selected bg-[#512C59] rounded-lg p-4 my-4">
                     <div className="selected-election mb-4">
@@ -97,7 +151,6 @@ const AdminAssignCandidates = () => {
                         </div>
                     </div>
                 </div>
-
                 {/* Elections List */}
                 <div className="election-list mb-8">
                     <p className="font-bold mb-4">Elections List:</p>
@@ -119,7 +172,6 @@ const AdminAssignCandidates = () => {
                         </div>
                     ))}
                 </div>
-
                 {/* Candidates List */}
                 <div className="candidate-list">
                     <p className="font-bold mb-4">Candidates:</p>
@@ -146,6 +198,18 @@ const AdminAssignCandidates = () => {
                         ))}
                     </div>
                 </div>
+                <button
+                    onClick={handleAssignCandidates}
+                    disabled={
+                        !selectedElection || selectedCandidates.length < 2
+                    }
+                    className={`mt-8 px-6 py-3 rounded-lg font-bold transition-colors ${
+                        selectedElection && selectedCandidates.length > 0
+                            ? "bg-[#7d4788] hover:bg-[#6d3778] text-white"
+                            : "bg-gray-500 cursor-not-allowed text-gray-300"
+                    }`}>
+                    Assign Candidates
+                </button>
             </div>
         </div>
     );
