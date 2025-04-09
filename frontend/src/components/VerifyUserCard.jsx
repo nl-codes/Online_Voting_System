@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ButtonVerificationRejection from "./ButtonVerificationRejection";
 
 const VerifyUserCard = ({ userData }) => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -38,49 +39,56 @@ const VerifyUserCard = ({ userData }) => {
 
     return (
         <>
-            <div className="border-4 border-[#7d4788] rounded-2xl px-4 py-2">
-                <div className="user-details text-lg">
-                    <div className="flex gap-20">
-                        UserName :{" "}
-                        <span className="font-bold">{userData.full_name}</span>
-                    </div>
-                    <div className="flex gap-32">
-                        DOB :
-                        <span className="font-bold">
-                            {formatDate(userData.dob)}
-                            <span className="ml-2 text-sm text-gray-300">
-                                ({calculateAge(userData.dob)})
+            <div className="border-4 border-[#7d4788] rounded-2xl px-4 py-2 flex justify-between items-center">
+                <div>
+                    <div className="user-details text-lg">
+                        <div className="flex gap-20">
+                            UserName :{" "}
+                            <span className="font-bold text-[#c791d4]">
+                                {userData.full_name}
                             </span>
-                        </span>
+                        </div>
+                        <div className="flex gap-32">
+                            DOB :
+                            <span className="font-bold text-yellow-500">
+                                {formatDate(userData.dob)}
+                                <span className="ml-2 text-sm text-gray-300">
+                                    ({calculateAge(userData.dob)})
+                                </span>
+                            </span>
+                        </div>
+                        <div className="flex gap-2">
+                            Citizenship-number :{" "}
+                            <span className="font-bold">
+                                {userData.citizenship_number}
+                            </span>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        Citizenship-number :{" "}
-                        <span className="font-bold">
-                            {userData.citizenship_number}
-                        </span>
+                    <div className="photos flex gap-10 my-4">
+                        <img
+                            className="border-white border-2 rounded-lg"
+                            src={userData.citizenship_front_pic}
+                            alt="citizenship_front_pic"
+                            onClick={() =>
+                                handleImageClick(userData.citizenship_front_pic)
+                            }
+                            width={"200px"}
+                        />
+                        <img
+                            className="border-white border-2 rounded-lg"
+                            src={userData.citizenship_back_pic}
+                            alt="citizenship_back_pic"
+                            onClick={() =>
+                                handleImageClick(userData.citizenship_back_pic)
+                            }
+                            width={"200px"}
+                        />
                     </div>
+                    <span className="text-[12px]">Click to zoom</span>
                 </div>
-                <div className="photos flex gap-10 my-4">
-                    <img
-                        className="border-white border-2 rounded-lg"
-                        src={userData.citizenship_front_pic}
-                        alt="citizenship_front_pic"
-                        onClick={() =>
-                            handleImageClick(userData.citizenship_front_pic)
-                        }
-                        width={"200px"}
-                    />
-                    <img
-                        className="border-white border-2 rounded-lg"
-                        src={userData.citizenship_back_pic}
-                        alt="citizenship_back_pic"
-                        onClick={() =>
-                            handleImageClick(userData.citizenship_back_pic)
-                        }
-                        width={"200px"}
-                    />
+                <div className="buttons">
+                    <ButtonVerificationRejection />
                 </div>
-                <span className="text-[12px]">Click to zoom</span>
             </div>
             {/* Modal for full-screen image */}
             {selectedImage && (
