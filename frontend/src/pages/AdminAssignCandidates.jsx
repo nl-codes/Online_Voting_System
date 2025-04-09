@@ -12,40 +12,39 @@ const AdminAssignCandidates = () => {
     const [selectedCandidates, setSelectedCandidates] = useState([]);
 
     useEffect(() => {
-        const dummyCandidates = [
-            {
-                full_name: "Pariston Hill",
-                photo_url:
-                    "https://res.cloudinary.com/duhbs7hqv/image/upload/v1743755500/candidates_images/bf5tr0fvkkvltcudpm2b.jpg",
-            },
-            {
-                full_name: "Gon Freccess",
-                photo_url:
-                    "https://res.cloudinary.com/duhbs7hqv/image/upload/v1743755515/candidates_images/ymciahc4j57c7zf4sclm.jpg",
-            },
-            {
-                full_name: "Kurosaki Ichigo",
-                photo_url:
-                    "https://res.cloudinary.com/duhbs7hqv/image/upload/v1743223625/userProfile_images/rku5ipusrpypnvekjhss.jpg",
-            },
-            {
-                full_name: "Monkey D. Luffy",
-                photo_url:
-                    "https://res.cloudinary.com/duhbs7hqv/image/upload/v1743820077/userProfile_images/ojelmlg5sdjhgmpmbsdt.webp",
-            },
-        ];
-        const dummyElection = [
-            {
-                topic: "Next PM ko ta ?",
-                position: "Prime Minister",
-            },
-            {
-                topic: "CEO of HunterXHunter Association?",
-                position: "Chairman",
-            },
-        ];
-        setElections(dummyElection);
-        setCandidates(dummyCandidates);
+        const fetchData = async () => {
+            try {
+                // Fetch elections
+                const electionRes = await axios.get(
+                    `${API_BASE_URL}/get_future_elections`
+                );
+                if (electionRes.data?.success) {
+                    setElections(electionRes.data.data || []);
+                } else {
+                    console.error(
+                        "Failed to fetch elections:",
+                        electionRes.data?.message
+                    );
+                }
+
+                // Fetch candidates
+                const candidateRes = await axios.get(
+                    `${API_BASE_URL}/get_candidates_all`
+                );
+                if (candidateRes.data?.success) {
+                    setCandidates(candidateRes.data.data || []);
+                } else {
+                    console.error(
+                        "Failed to fetch candidates:",
+                        candidateRes.data?.message
+                    );
+                }
+            } catch (error) {
+                console.error("Error occurred while fetching data:", error);
+            }
+        };
+
+        fetchData();
     }, []);
 
     const handleElectionSelect = (election) => {
