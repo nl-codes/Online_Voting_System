@@ -385,6 +385,58 @@ app.get("/get_candidates_all", async (req, res) => {
     }
 });
 
+app.post("/check_candidates_assigned", async (req, res) => {
+    const { election_id } = req.body;
+
+    if (!election_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Election Id is required",
+        });
+    }
+
+    try {
+        const electionSql = "SELECT 1 FROM election WHERE id = ?";
+        const [electionResult] = await pool.execute(electionSql, [election_id]);
+
+        if (electionResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Election doesn't exist",
+            });
+        }
+
+        const candidateSql =
+            "SELECT candidate_id FROM election_candidate WHERE election_id = ?";
+        const [candidateResult] = await pool.execute(candidateSql, [
+            election_id,
+        ]);
+
+        if (candidateResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Canidates aren't assigned yet.",
+            });
+        }
+
+        // Transform candidateResults into an array of candidate IDs
+        const candidateIds = candidateResult.map((row) => row.candidate_id);
+
+        return res.status(200).json({
+            success: true,
+            data: candidateIds,
+            message: "Candidates retrieved successfully",
+        });
+    } catch (err) {
+        console.error("Error checking candidate assigned:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error checking candidate assigned",
+            error: err.message,
+        });
+    }
+});
+
 app.post("/assign_candidate", async (req, res) => {
     const { election_id, candidate_id } = req.body;
 
@@ -981,6 +1033,7 @@ app.post("/verify_voter", async (req, res) => {
         });
     }
 });
+
 app.post("/reject_voter", async (req, res) => {
     try {
         const { user_id } = req.body;
