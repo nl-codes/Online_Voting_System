@@ -875,7 +875,7 @@ app.post("/admin_login", async (req, res) => {
 app.get("/unverified_voter_list", async (req, res) => {
     try {
         const sql =
-            "SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name, u.dob, v.citizenship_number, v.phone_number, v.citizenship_front_pic, v.citizenship_back_pic FROM user_detail AS u JOIN voter_card AS v ON u.id = v.user_id WHERE v.verification_status = 0 GROUP BY v.user_id;";
+            "SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name, u.id, u.dob, v.citizenship_number, v.phone_number, v.citizenship_front_pic, v.citizenship_back_pic FROM user_detail AS u JOIN voter_card AS v ON u.id = v.user_id WHERE v.verification_status = 0 GROUP BY v.user_id;";
 
         const [result] = await pool.execute(sql);
 
@@ -893,6 +893,89 @@ app.get("/unverified_voter_list", async (req, res) => {
         });
     } catch (err) {
         console.error("Database error:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Database error",
+            error: err.message,
+        });
+    }
+});
+
+app.post("/verify_voter", async (req, res) => {
+    try {
+        const { user_id } = req.body;
+
+        if (user_id === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Missing user Id field",
+            });
+        }
+        const checkUserSql = `SELECT verification_status FROM voter_card WHERE user_id = ?`;
+        const [checkUserResult] = await pool.execute(checkUserSql, [user_id]);
+        if (checkUserResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "User hasn't applied for voter Id",
+            });
+        }
+
+        if (checkUserResult[0].verification_status === 1) {
+            return res.status(200).json({
+                success: false,
+                message: "User is already verified",
+            });
+        }
+        const verifyUserSql = `UPDATE voter_card SET verification_status = 1 WHERE user_id = ?`;
+
+        await pool.execute(verifyUserSql, [user_id]);
+
+        return res.status(200).json({
+            success: true,
+            message: "User verified successfully",
+        });
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: "Database error",
+            error: err.message,
+        });
+    }
+});
+app.post("/reject_voter", async (req, res) => {
+    try {
+        const { user_id } = req.body;
+
+        if (user_id === "") {
+            return res.status(400).json({
+                success: false,
+                message: "Missing user Id field",
+            });
+        }
+        const checkUserSql = `SELECT verification_status FROM voter_card WHERE user_id = ?`;
+        const [checkUserResult] = await pool.execute(checkUserSql, [user_id]);
+        if (checkUserResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "User hasn't applied for voter Id",
+            });
+        }
+
+        if (checkUserResult[0].verification_status === 2) {
+            return res.status(200).json({
+                success: false,
+                message: "User is already rejected",
+            });
+        }
+        const rejectUserSql = `UPDATE voter_card SET verification_status = 2 WHERE user_id = ?`;
+
+        await pool.execute(rejectUserSql, [user_id]);
+
+        return res.status(200).json({
+            success: true,
+            message: "User rejected successfully",
+        });
+    } catch (err) {
         return res.status(500).json({
             success: false,
             message: "Database error",
