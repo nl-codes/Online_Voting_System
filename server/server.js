@@ -366,6 +366,25 @@ app.get("/get_future_elections", async (req, res) => {
     }
 });
 
+app.get("/get_candidates_all", async (req, res) => {
+    const sql = "SELECT id, full_name FROM candidate";
+
+    try {
+        const [result] = await pool.execute(sql);
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        console.error("Error fetching elections:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching elections",
+            error: err.message,
+        });
+    }
+});
+
 app.post("/assign_candidate", async (req, res) => {
     const { election_id, candidate_id } = req.body;
 
