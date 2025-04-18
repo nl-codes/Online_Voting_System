@@ -1,1077 +1,210 @@
-import express from "express";
-import mysql from "mysql2/promise";
-import cors from "cors";
-import path from "path";
-import bcrypt from "bcryptjs";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import {
-    uploadCandidate,
-    uploadCitizenship,
-    uploadUserProfile,
-} from "./middleware/multerConfig.js";
+import express from 'express';
+import cors from 'cors';
+import multer from 'multer';
+import { Sequelize, DataTypes } from 'sequelize';
+import { check, validationResult } from 'express-validator';
+import cloudinary from '../config/cloudinaryConfig.js';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import bodyParser from 'body-parser';
 
-import dotenv from "dotenv";
-
-dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
+// Setup Express
 const app = express();
-
-app.use(express.static(path.join(__dirname, "public")));
 app.use(cors());
-app.use(express.json());
+app.use(bodyParser.json());  // Parses incoming JSON requests
 
-const port = 5000;
-
-// Create connection pool instead of single connection
-const pool = mysql.createPool({
-    host: "localhost",
-    user: "root",
-    password: "",
-    database: "online_voting_system",
-    port: 3306,
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0,
+// Sequelize initialization
+const sequelize = new Sequelize('election_db', 'root', '', {
+  host: '127.0.0.1',
+  port: 3307,
+  dialect: 'mysql',
+  logging: false,
 });
 
-// Test database connection
-pool.getConnection()
-    .then((connection) => {
-        console.log("Database connected successfully");
-        connection.release();
-    })
-    .catch((err) => {
-        console.error("Error connecting to the database:", err);
+// Models for Election and Candidate
+const Election = sequelize.define('Election', {
+  title: { type: DataTypes.STRING, allowNull: false },
+  position: { type: DataTypes.STRING, allowNull: false },
+  description: { type: DataTypes.TEXT, allowNull: false },
+  start_time: { type: DataTypes.DATE, allowNull: false },
+  end_time: { type: DataTypes.DATE, allowNull: false },
+}, {
+  tableName: 'elections',
+  timestamps: true,
+  paranoid: true
+});
+
+const Candidate = sequelize.define('Candidate', {
+  fullName: {
+    type: DataTypes.STRING(255),
+    allowNull: false,
+    validate: { len: [1, 255] }
+  },
+  photo: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    validate: { isUrl: true }
+  },
+  saying: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+    validate: { len: [0, 500] }
+  },
+  election_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'elections',
+      key: 'id'
+    }
+  }
+}, {
+  tableName: 'candidates',
+  timestamps: true,
+  paranoid: true
+});
+
+// Associations
+Candidate.belongsTo(Election, { foreignKey: 'election_id' });
+Election.hasMany(Candidate, { foreignKey: 'election_id' });
+
+// Routes
+
+// ✅ Create a new election
+app.post('/api/elections', async (req, res) => {
+  const { title, position, description, start_time, end_time } = req.body;
+  try {
+    const election = await Election.create({ title, position, description, start_time, end_time });
+    res.status(200).json({ message: 'Election saved successfully', id: election.id });
+  } catch (err) {
+    console.error('Error saving election:', err);
+    res.status(500).send('Error saving election');
+  }
+});
+
+// ✅ Get all elections
+app.get('/api/elections', async (req, res) => {
+  try {
+    const elections = await Election.findAll({ order: [['start_time', 'DESC']] });
+    res.status(200).json(elections);
+  } catch (err) {
+    console.error('Error fetching elections:', err);
+    res.status(500).send('Error fetching elections');
+  }
+});
+
+// ✅ Get all candidates (with election info)
+app.get('/api/candidates', async (req, res) => {
+  try {
+    const candidates = await Candidate.findAll({
+      include: [{
+        model: Election,
+        attributes: ['id', 'title', 'position']
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(candidates);
+  } catch (err) {
+    console.error('Error fetching all candidates:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// ✅ Get candidates for an election
+app.get('/api/elections/:electionId/candidates', async (req, res) => {
+  try {
+    const candidates = await Candidate.findAll({
+      where: { election_id: req.params.electionId },
+      include: [{ model: Election, attributes: ['title', 'position'] }]
+    });
+    res.json(candidates);
+  } catch (err) {
+    console.error('Error fetching election candidates:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
+});
+
+// Setup multer for file upload
+const upload = multer({ dest: 'uploads/' });
+
+// ✅ Create a candidate
+app.post('/api/elections/:electionId/candidates', upload.single('photo'), async (req, res) => {
+  try {
+    const election = await Election.findByPk(req.params.electionId);
+    if (!election) return res.status(404).json({ message: 'Election not found' });
+
+    let photoUrl = null;
+
+    if (req.file) {
+      const result = await cloudinary.uploader.upload(req.file.path, {
+        folder: 'candidates',
+        public_id: uuidv4(),
+      });
+
+      photoUrl = result.secure_url;
+      fs.unlinkSync(req.file.path); // Clean up temp file
+    }
+
+    const candidate = await Candidate.create({
+      election_id: req.params.electionId,
+      fullName: req.body.fullName,
+      photo: photoUrl,
+      saying: req.body.saying || null,
     });
 
-// Graceful shutdown
-process.on("SIGINT", async () => {
-    try {
-        await pool.end();
-        console.log("Pool connections closed.");
-        process.exit(0);
-    } catch (err) {
-        console.error("Error closing pool connections:", err);
-        process.exit(1);
-    }
+    res.status(201).json(candidate);
+  } catch (err) {
+    console.error('Error creating candidate:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
+// ✅ Update candidate
+app.put('/api/candidates/:id', [
+  check('fullName', 'Full name is required').not().isEmpty().trim(),
+  check('photo', 'Photo URL must be valid').optional().isURL(),
+  check('saying', 'Saying must be less than 500 characters').optional().isLength({ max: 500 })
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
-// Register user
-app.post("/user_register", async (req, res) => {
-    const sql =
-        "INSERT INTO user_detail (first_name, last_name, email, password_hash, dob) VALUES (?,?,?,?,?)";
+  try {
+    const candidate = await Candidate.findByPk(req.params.id);
+    if (!candidate) return res.status(404).json({ message: 'Candidate not found' });
 
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-
-        const values = [
-            req.body.first_name,
-            req.body.last_name,
-            req.body.email,
-            hashedPassword,
-            req.body.dob,
-        ];
-        console.log(values);
-        const [result] = await pool.execute(sql, values);
-
-        return res.status(201).json({
-            success: true,
-            message: "User registered successfully",
-            userId: result.insertId,
-        });
-    } catch (err) {
-        console.error("Registration error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: err.message,
-        });
-    }
-});
-
-// Login user
-app.post("/user_login", async (req, res) => {
-    const sql = "SELECT * FROM `user_detail` WHERE `email` = ?";
-    const { email, password } = req.body;
-
-    try {
-        const [users] = await pool.execute(sql, [email]);
-
-        if (users.length === 0) {
-            return res.status(401).json({
-                success: false,
-                error: "Invalid email or password",
-            });
-        }
-
-        const user = users[0];
-        const isMatch = await bcrypt.compare(password, user.password_hash);
-
-        if (!isMatch) {
-            return res.status(401).json({
-                success: false,
-                error: "Invalid email or password",
-            });
-        }
-
-        return res.json({
-            success: true,
-            id: user.id,
-            first_name: user.first_name,
-            last_name: user.last_name,
-            email: user.email,
-            dob: user.dob,
-            photo_url: user.photo_url,
-        });
-    } catch (err) {
-        console.error("Login error:", err);
-        return res.status(500).json({
-            success: false,
-            error: "Database error: " + err.message,
-        });
-    }
-});
-
-// Check if the email exists or not
-app.get("/user_exists/:email", async (req, res) => {
-    const sql = "SELECT * FROM `user_detail` WHERE `email` = ?";
-
-    try {
-        const [result] = await pool.execute(sql, [req.params.email]);
-        return res.json({
-            success: true,
-            exists: result.length > 0,
-        });
-    } catch (err) {
-        console.error("Error checking user:", err);
-        return res.status(500).json({
-            success: false,
-            error: "Database error: " + err.message,
-        });
-    }
-});
-
-// Register Candidate
-app.post("/candidate_register", (req, res) => {
-    uploadCandidate.single("photo_url")(req, res, async (err) => {
-        if (err) {
-            console.error("Upload error:", err);
-            return res.status(400).json({
-                success: false,
-                message: "File upload failed",
-                error:
-                    err.code === "LIMIT_FILE_SIZE"
-                        ? "File size is too large"
-                        : err.code === "LIMIT_UNEXPECTED_FILE"
-                        ? "Wrong field name for file upload (expected 'photo_url')"
-                        : err.code === "LIMIT_FILE_COUNT"
-                        ? "Too many files uploaded"
-                        : err.message || "Unknown upload error",
-            });
-        }
-
-        try {
-            const { full_name, saying } = req.body;
-
-            if (!req.file) {
-                return res.status(400).json({
-                    success: false,
-                    message: "No file uploaded",
-                });
-            }
-
-            if (!full_name || !saying) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Missing required fields",
-                });
-            }
-
-            const photo_url = req.file.path;
-            const sql =
-                "INSERT INTO `candidate`(`full_name`, `photo_url`, `saying`) VALUES (?,?,?)";
-            const values = [full_name, photo_url, saying];
-
-            const [result] = await pool.execute(sql, values);
-
-            return res.status(201).json({
-                success: true,
-                message: "Candidate registered successfully",
-                data: {
-                    id: result.insertId,
-                    full_name,
-                    saying,
-                    photo_url,
-                },
-            });
-        } catch (err) {
-            console.error("Server error:", err);
-            return res.status(500).json({
-                success: false,
-                message: "Server error",
-                error: err.message || "Unknown error",
-            });
-        }
+    await candidate.update({
+      fullName: req.body.fullName,
+      photo: req.body.photo || null,
+      saying: req.body.saying || null
     });
+
+    res.json(candidate);
+  } catch (err) {
+    console.error('Error updating candidate:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
 });
 
-// Register Election
-app.post("/election_register", async (req, res) => {
-    try {
-        const { topic, description, position, start_time, stop_time } =
-            req.body;
+// ✅ Delete candidate
+app.delete('/api/candidates/:id', async (req, res) => {
+  try {
+    const candidate = await Candidate.findByPk(req.params.id);
+    if (!candidate) return res.status(404).json({ message: 'Candidate not found' });
 
-        if (!topic || !description || !position || !start_time || !stop_time) {
-            return res.status(400).json({
-                success: false,
-                message: "Missing required fields",
-            });
-        }
-
-        const sql =
-            "INSERT INTO `election`(`topic`, `description`, `position`, `start_time`, `stop_time`) VALUES (?,?,?,?,?)";
-        const values = [topic, description, position, start_time, stop_time];
-
-        const [result] = await pool.execute(sql, values);
-
-        return res.status(201).json({
-            success: true,
-            message: "Election created successfully",
-            data: {
-                id: result.insertId,
-                topic,
-                description,
-                position,
-                start_time,
-                stop_time,
-            },
-        });
-    } catch (err) {
-        console.error("Server error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: err.message,
-        });
-    }
+    await candidate.destroy();
+    res.json({ message: 'Candidate removed successfully' });
+  } catch (err) {
+    console.error('Error deleting candidate:', err);
+    res.status(500).json({ message: 'Server Error' });
+  }
 });
 
-app.get("/view_election_brief", async (req, res) => {
-    const sql = `
-        SELECT 
-            e.id, 
-            e.topic, 
-            e.description, 
-            e.stop_time, 
-            GROUP_CONCAT(c.photo_url) AS photo_url_list 
-        FROM election_candidate ec 
-        JOIN election e ON ec.election_id = e.id 
-        JOIN candidate c ON ec.candidate_id = c.id 
-        WHERE e.stop_time > NOW() 
-        GROUP BY e.id
-    `;
-
-    try {
-        const [result] = await pool.execute(sql);
-        return res.status(200).json({
-            success: true,
-            data: result,
-        });
-    } catch (err) {
-        console.error("Error fetching elections:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error fetching elections",
-            error: err.message,
-        });
-    }
-});
-
-app.get("/view_election_full/:id", async (req, res) => {
-    const electionId = req.params.id;
-
-    const sql = `
-        SELECT 
-            e.id, 
-            e.topic, 
-            e.description, 
-            e.stop_time, 
-            e.start_time,
-            e.position,
-            GROUP_CONCAT(c.photo_url SEPARATOR '|') AS photo_url_list, 
-            GROUP_CONCAT(c.full_name SEPARATOR '|') AS candidate_list, 
-            GROUP_CONCAT(c.id SEPARATOR '|') AS candidate_id_list, 
-            GROUP_CONCAT(c.saying SEPARATOR '|') AS saying_list, 
-            GROUP_CONCAT(COALESCE(vote_count, 0) SEPARATOR '|') AS votes_list 
-        FROM election_candidate ec 
-        JOIN election e ON ec.election_id = e.id 
-        JOIN candidate c ON ec.candidate_id = c.id 
-        LEFT JOIN (
-            SELECT candidate_id, election_id, COUNT(*) AS vote_count 
-            FROM votes 
-            GROUP BY candidate_id, election_id
-        ) v ON v.election_id = e.id AND v.candidate_id = c.id 
-        WHERE e.id = ? 
-        GROUP BY e.id`;
-
-    try {
-        const [result] = await pool.execute(sql, [electionId]);
-
-        if (result.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Election not found",
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            data: result[0],
-        });
-    } catch (err) {
-        console.error("Error fetching election:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error fetching election",
-            error: err.message,
-        });
-    }
-});
-
-app.get("/get_future_elections", async (req, res) => {
-    const sql =
-        "SELECT id, topic, position FROM election WHERE start_time > NOW()";
-
-    try {
-        const [result] = await pool.execute(sql);
-        return res.status(200).json({
-            success: true,
-            data: result,
-        });
-    } catch (err) {
-        console.error("Error fetching elections:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error fetching elections",
-            error: err.message,
-        });
-    }
-});
-
-app.get("/get_candidates_all", async (req, res) => {
-    const sql = "SELECT id, full_name, photo_url FROM candidate";
-
-    try {
-        const [result] = await pool.execute(sql);
-        return res.status(200).json({
-            success: true,
-            data: result,
-        });
-    } catch (err) {
-        console.error("Error fetching elections:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error fetching elections",
-            error: err.message,
-        });
-    }
-});
-
-app.post("/check_candidates_assigned", async (req, res) => {
-    const { election_id } = req.body;
-
-    if (!election_id) {
-        return res.status(400).json({
-            success: false,
-            message: "Election Id is required",
-        });
-    }
-
-    try {
-        const electionSql = "SELECT 1 FROM election WHERE id = ?";
-        const [electionResult] = await pool.execute(electionSql, [election_id]);
-
-        if (electionResult.length === 0) {
-            return res.status(200).json({
-                success: false,
-                message: "Election doesn't exist",
-            });
-        }
-
-        const candidateSql =
-            "SELECT candidate_id FROM election_candidate WHERE election_id = ?";
-        const [candidateResult] = await pool.execute(candidateSql, [
-            election_id,
-        ]);
-
-        if (candidateResult.length === 0) {
-            return res.status(200).json({
-                success: false,
-                message: "Canidates aren't assigned yet.",
-            });
-        }
-
-        // Transform candidateResults into an array of candidate IDs
-        const candidateIds = candidateResult.map((row) => row.candidate_id);
-
-        return res.status(200).json({
-            success: true,
-            data: candidateIds,
-            message: "Candidates retrieved successfully",
-        });
-    } catch (err) {
-        console.error("Error checking candidate assigned:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error checking candidate assigned",
-            error: err.message,
-        });
-    }
-});
-
-app.post("/assign_candidate", async (req, res) => {
-    const { election_id, candidate_id } = req.body;
-
-    if (!election_id || !candidate_id) {
-        return res.status(400).json({
-            success: false,
-            message: "Election ID and Candidate ID are required",
-        });
-    }
-
-    try {
-        const sql =
-            "INSERT INTO `election_candidate` (`election_id`, `candidate_id`, `votes`) VALUES (?, ?, 0)";
-        const [result] = await pool.execute(sql, [election_id, candidate_id]);
-
-        return res.status(201).json({
-            success: true,
-            message: "Candidate assigned successfully",
-        });
-    } catch (err) {
-        console.error("Error assigning candidate:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error assigning candidate",
-            error: err.message,
-        });
-    }
-});
-
-app.post("/check_vote_left", async (req, res) => {
-    const { voter_id, election_id } = req.body;
-
-    if (!voter_id || !election_id) {
-        return res.status(400).json({
-            success: false,
-            message: "Voter ID, Election ID are required",
-        });
-    }
-    try {
-        const [voterExistResult] = await pool.execute(
-            "SELECT * from voter_card WHERE voter_id = ?",
-            [voter_id]
-        );
-        if (voterExistResult.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Voter ID isn't registered",
-            });
-        }
-
-        const [electionExistResult] = await pool.execute(
-            "SELECT * from election WHERE id = ?",
-            [election_id]
-        );
-        if (electionExistResult.length === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Election ID doesn't exist",
-            });
-        }
-
-        const [voteResult] = await pool.execute(
-            "SELECT * FROM votes WHERE voter_id = ? AND election_id = ?",
-            [voter_id, election_id]
-        );
-        if (voteResult.length > 0) {
-            return res.status(200).json({
-                success: false,
-                message: "User has already voted",
-            });
-        } else {
-            return res.status(200).json({
-                success: true,
-                message: "User has not voted yet",
-            });
-        }
-    } catch (error) {
-        console.error("Error checking vote:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error checking vote",
-            error: err.message,
-        });
-    }
-});
-
-app.post("/vote", async (req, res) => {
-    const { election_id, candidate_id, user_id, voter_id } = req.body;
-
-    if (!election_id || !candidate_id || !user_id || !voter_id) {
-        return res.status(400).json({
-            success: false,
-            message:
-                "Election ID, Candidate ID, User ID, Voter ID are required",
-        });
-    }
-
-    try {
-        // Check if user exists
-        const [userResult] = await pool.execute(
-            "SELECT EXISTS(SELECT 1 FROM user_detail WHERE id = ?) AS user_exist",
-            [user_id]
-        );
-
-        if (!userResult[0].user_exist) {
-            return res.status(400).json({
-                success: false,
-                message: "User does not exist",
-            });
-        }
-
-        // Check if voter exists and is verified
-        const [voterResult] = await pool.execute(
-            "SELECT verification_status FROM voter_card WHERE voter_id = ?",
-            [voter_id]
-        );
-
-        if (!voterResult.length) {
-            return res.status(400).json({
-                success: false,
-                message: "Voter ID isn't registered",
-            });
-        }
-
-        if (voterResult[0].verification_status === 0) {
-            return res.status(400).json({
-                success: false,
-                message: "Voter ID isn't verified",
-            });
-        }
-
-        // Check if election exists and is active
-        const [electionResult] = await pool.execute(
-            "SELECT start_time, stop_time FROM election WHERE id = ?",
-            [election_id]
-        );
-
-        if (electionResult.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "Election not found",
-            });
-        }
-
-        const currentTime = new Date();
-        const startTime = new Date(electionResult[0].start_time);
-        const stopTime = new Date(electionResult[0].stop_time);
-
-        if (currentTime < startTime) {
-            return res.status(400).json({
-                success: false,
-                message: "Voting has not started yet",
-                starts_in:
-                    Math.ceil((startTime - currentTime) / (1000 * 60)) +
-                    " minutes",
-            });
-        }
-
-        if (currentTime > stopTime) {
-            return res.status(400).json({
-                success: false,
-                message: "Voting has ended",
-                ended:
-                    Math.floor((currentTime - stopTime) / (1000 * 60)) +
-                    " minutes ago",
-            });
-        }
-
-        // Check if candidate exists
-        const [candidateResult] = await pool.execute(
-            "SELECT EXISTS(SELECT 1 FROM candidate WHERE id = ?) AS candidate_exist",
-            [candidate_id]
-        );
-
-        if (!candidateResult[0].candidate_exist) {
-            return res.status(400).json({
-                success: false,
-                message: "Candidate does not exist",
-            });
-        }
-
-        // Check if user has already voted
-        const [voteResult] = await pool.execute(
-            "SELECT * FROM votes WHERE voter_id = ? AND election_id = ?",
-            [voter_id, election_id]
-        );
-
-        if (voteResult.length > 0) {
-            return res.status(400).json({
-                success: false,
-                message: "User has already voted in this election",
-            });
-        }
-
-        // Insert vote
-        await pool.execute(
-            "INSERT INTO votes (election_id, candidate_id, voter_id) VALUES (?, ?, ?)",
-            [election_id, candidate_id, voter_id]
-        );
-
-        return res.status(201).json({
-            success: true,
-            message: "Vote cast successfully",
-        });
-    } catch (err) {
-        console.error("Error voting:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Error voting",
-            error: err.message,
-        });
-    }
-});
-
-// Register Voter_card
-app.post(
-    "/voter_card_register",
-    uploadCitizenship.fields([
-        { name: "citizenship_front_pic", maxCount: 1 },
-        { name: "citizenship_back_pic", maxCount: 1 },
-    ]),
-    async (req, res) => {
-        try {
-            const { citizenship_number, phone_number, user_id } = req.body;
-
-            if (!citizenship_number || !phone_number || !user_id) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Missing required fields",
-                });
-            }
-
-            // Validate Nepal phone number
-            const nepalPhoneRegex = /^9[7-8][0-9]{8}$/;
-            if (!nepalPhoneRegex.test(phone_number)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid Nepal phone number format",
-                });
-            }
-
-            // Ensure images were uploaded
-            if (
-                !req.files ||
-                !req.files.citizenship_front_pic ||
-                !req.files.citizenship_back_pic
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        "Both citizenship front and back images are required",
-                });
-            }
-
-            const citizenship_front_pic =
-                req.files.citizenship_front_pic[0].path;
-            const citizenship_back_pic = req.files.citizenship_back_pic[0].path;
-
-            // Check existing records
-            const [checkResult] = await pool.execute(
-                "SELECT * FROM voter_card WHERE citizenship_number = ? OR phone_number = ?",
-                [citizenship_number, phone_number]
-            );
-
-            if (checkResult.length > 0) {
-                const existingRecord = checkResult[0];
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        existingRecord.citizenship_number === citizenship_number
-                            ? "Citizenship number already registered"
-                            : "Phone number already registered",
-                });
-            }
-
-            const [userExistResult] = await pool.execute(
-                "SELECT * FROM user_detail WHERE id = ?",
-                [user_id]
-            );
-
-            if (userExistResult.length === 0) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Cannot Create Voter Card for unregistered user",
-                });
-            }
-
-            // Insert new voter card
-            const [insertResult] = await pool.execute(
-                `INSERT INTO voter_card 
-            (citizenship_number, phone_number, citizenship_front_pic, citizenship_back_pic, user_id, verification_status) 
-            VALUES (?, ?, ?, ?, ?, 0)`,
-                [
-                    citizenship_number,
-                    phone_number,
-                    citizenship_front_pic,
-                    citizenship_back_pic,
-                    user_id,
-                ]
-            );
-
-            // Get voter ID
-            const [voterResult] = await pool.execute(
-                "SELECT voter_id FROM voter_card WHERE citizenship_number = ? AND phone_number = ?",
-                [citizenship_number, phone_number]
-            );
-
-            return res.status(201).json({
-                success: true,
-                message: "Voter Card created successfully",
-                data: {
-                    voter_id: voterResult[0].voter_id,
-                    citizenship_number,
-                    phone_number,
-                    citizenship_front_pic,
-                    citizenship_back_pic,
-                    verification_status: 0,
-                },
-            });
-        } catch (err) {
-            console.error("Server error:", err);
-            return res.status(500).json({
-                success: false,
-                message: "Server error",
-                error: err.message,
-            });
-        }
-    }
-);
-
-app.put(
-    "/voter_card_register",
-    uploadCitizenship.fields([
-        { name: "citizenship_front_pic", maxCount: 1 },
-        { name: "citizenship_back_pic", maxCount: 1 },
-    ]),
-    async (req, res) => {
-        try {
-            const { citizenship_number, phone_number, user_id } = req.body;
-
-            if (!citizenship_number || !phone_number || !user_id) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Missing required fields",
-                });
-            }
-
-            // Validate Nepal phone number
-            const nepalPhoneRegex = /^9[7-8][0-9]{8}$/;
-            if (!nepalPhoneRegex.test(phone_number)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid Nepal phone number format",
-                });
-            }
-
-            // Ensure images were uploaded
-            if (
-                !req.files ||
-                !req.files.citizenship_front_pic ||
-                !req.files.citizenship_back_pic
-            ) {
-                return res.status(400).json({
-                    success: false,
-                    message:
-                        "Both citizenship front and back images are required",
-                });
-            }
-
-            const citizenship_front_pic =
-                req.files.citizenship_front_pic[0].path;
-            const citizenship_back_pic = req.files.citizenship_back_pic[0].path;
-
-            // Check if voter card exists for the user
-            const [existingCard] = await pool.execute(
-                "SELECT * FROM voter_card WHERE user_id = ?",
-                [user_id]
-            );
-
-            if (existingCard.length === 0) {
-                return res.status(404).json({
-                    success: false,
-                    message: "No voter card found for this user",
-                });
-            }
-
-            // Update voter card
-            await pool.execute(
-                `UPDATE voter_card 
-                SET citizenship_number = ?,
-                    phone_number = ?,
-                    citizenship_front_pic = ?,
-                    citizenship_back_pic = ?,
-                    verification_status = 0
-                WHERE user_id = ?`,
-                [
-                    citizenship_number,
-                    phone_number,
-                    citizenship_front_pic,
-                    citizenship_back_pic,
-                    user_id,
-                ]
-            );
-
-            // Get updated voter card details
-            const [updatedCard] = await pool.execute(
-                "SELECT * FROM voter_card WHERE user_id = ?",
-                [user_id]
-            );
-
-            return res.status(200).json({
-                success: true,
-                message: "Voter Card updated successfully",
-                data: {
-                    voter_id: updatedCard[0].voter_id,
-                    citizenship_number,
-                    phone_number,
-                    citizenship_front_pic,
-                    citizenship_back_pic,
-                    verification_status: 0,
-                },
-            });
-        } catch (err) {
-            console.error("Server error:", err);
-            return res.status(500).json({
-                success: false,
-                message: "Server error",
-                error: err.message,
-            });
-        }
-    }
-);
-
-app.post("/voter_id_retrieve", async (req, res) => {
-    try {
-        const { user_id } = req.body;
-        const sql =
-            "SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name, u.photo_url, v.voter_id, v.citizenship_number, v.phone_number, v.verification_status FROM user_detail AS u JOIN voter_card AS v ON u.id = v.user_id WHERE v.user_id = ? GROUP BY v.user_id;";
-
-        const [result] = await pool.execute(sql, [user_id]);
-
-        if (result.length === 0) {
-            return res.status(200).json({
-                success: false,
-                message: "Voter ID hasn't been applied yet.",
-                status: "unapplied",
-            });
-        }
-
-        if (result[0].verification_status == 0) {
-            return res.status(200).json({
-                success: false,
-                message: "Voter ID hasn't been verified yet.",
-                status: "pending",
-            });
-        }
-
-        if (result[0].verification_status == 2) {
-            return res.status(200).json({
-                success: false,
-                message: "Invalid Documents.",
-                status: "rejected",
-            });
-        }
-        if (result[0].verification_status == 1) {
-            return res.status(200).json({
-                success: true,
-                message: "Voter found",
-                voter_id: result[0].voter_id,
-                status: "verified",
-                data: {
-                    voter_id: result[0].voter_id,
-                    full_name: result[0].full_name,
-                    photo_url: result[0].photo_url,
-                    citizenship_number: result[0].citizenship_number,
-                    phone_number: result[0].phone_number,
-                },
-            });
-        }
-    } catch (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Database error",
-            error: err.message,
-        });
-    }
-});
-
-app.post("/admin_login", async (req, res) => {
-    try {
-        const { email, password } = req.body;
-
-        if (email === "" || password === "") {
-            return res.status(400).json({
-                success: false,
-                message: "Email and password are required",
-            });
-        }
-
-        if (
-            email === process.env.ADMIN_EMAIL &&
-            password === process.env.ADMIN_PASSWORD
-        ) {
-            return res.status(200).json({
-                success: true,
-                message: "Login successful",
-                admin_id: process.env.ADMIN_ID,
-            });
-        }
-
-        // Invalid credentials
-        return res.status(200).json({
-            success: false,
-            message: "Invalid email or password",
-        });
-    } catch (error) {
-        console.error("Admin login error:", error);
-        return res.status(500).json({
-            success: false,
-            message: "Server error",
-            error: error.message,
-        });
-    }
-});
-
-app.get("/unverified_voter_list", async (req, res) => {
-    try {
-        const sql =
-            "SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name, u.id, u.dob, v.citizenship_number, v.phone_number, v.citizenship_front_pic, v.citizenship_back_pic FROM user_detail AS u JOIN voter_card AS v ON u.id = v.user_id WHERE v.verification_status = 0 GROUP BY v.user_id;";
-
-        const [result] = await pool.execute(sql);
-
-        if (result.length === 0) {
-            return res.status(200).json({
-                success: true,
-                message: "All applied users are verified",
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "List of unverified users",
-            data: result,
-        });
-    } catch (err) {
-        console.error("Database error:", err);
-        return res.status(500).json({
-            success: false,
-            message: "Database error",
-            error: err.message,
-        });
-    }
-});
-
-app.post("/verify_voter", async (req, res) => {
-    try {
-        const { user_id } = req.body;
-
-        if (user_id === "") {
-            return res.status(400).json({
-                success: false,
-                message: "Missing user Id field",
-            });
-        }
-        const checkUserSql = `SELECT verification_status FROM voter_card WHERE user_id = ?`;
-        const [checkUserResult] = await pool.execute(checkUserSql, [user_id]);
-        if (checkUserResult.length === 0) {
-            return res.status(200).json({
-                success: false,
-                message: "User hasn't applied for voter Id",
-            });
-        }
-
-        if (checkUserResult[0].verification_status === 1) {
-            return res.status(200).json({
-                success: false,
-                message: "User is already verified",
-            });
-        }
-        const verifyUserSql = `UPDATE voter_card SET verification_status = 1 WHERE user_id = ?`;
-
-        await pool.execute(verifyUserSql, [user_id]);
-
-        return res.status(200).json({
-            success: true,
-            message: "User verified successfully",
-        });
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Database error",
-            error: err.message,
-        });
-    }
-});
-
-app.post("/reject_voter", async (req, res) => {
-    try {
-        const { user_id } = req.body;
-
-        if (user_id === "") {
-            return res.status(400).json({
-                success: false,
-                message: "Missing user Id field",
-            });
-        }
-        const checkUserSql = `SELECT verification_status FROM voter_card WHERE user_id = ?`;
-        const [checkUserResult] = await pool.execute(checkUserSql, [user_id]);
-        if (checkUserResult.length === 0) {
-            return res.status(200).json({
-                success: false,
-                message: "User hasn't applied for voter Id",
-            });
-        }
-
-        if (checkUserResult[0].verification_status === 2) {
-            return res.status(200).json({
-                success: false,
-                message: "User is already rejected",
-            });
-        }
-        const rejectUserSql = `UPDATE voter_card SET verification_status = 2 WHERE user_id = ?`;
-
-        await pool.execute(rejectUserSql, [user_id]);
-
-        return res.status(200).json({
-            success: true,
-            message: "User rejected successfully",
-        });
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: "Database error",
-            error: err.message,
-        });
-    }
+// Sync DB & start server
+sequelize.sync({ alter: true }).then(() => {
+  const PORT = 5001;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
+  });
+}).catch(err => {
+  console.error('❌ Failed to sync DB:', err);
 });
