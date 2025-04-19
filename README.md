@@ -38,30 +38,14 @@ The Online Voting System (OVS) is a web-based application designed to facilitate
    npm install
    ```
 
-3. Set up the `.env` files:
-   - **Frontend**: Create a `.env` file in the `frontend` directory:
-     ```plaintext
-     REACT_APP_API_BASE_URL=http://localhost:5000
-     ```
-   - **Backend**: Create a `.env` file in the `server` directory:
-     ```plaintext
-     DB_HOST=localhost
-     DB_USER=root
-     DB_PASSWORD=yourpassword
-     DB_NAME=ovs
-     ADMIN_EMAIL=admin@example.com
-     ADMIN_PASSWORD=adminpassword
-     ADMIN_ID=1
-     ```
 
-
-4. Start the backend development server:
+3. Start the backend development server:
    ```bash
    cd server
    npm run dev
    ```
 
-5. Start the frontend development server:
+4. Start the frontend development server:
    ```bash
    cd frontend
    npm run dev
