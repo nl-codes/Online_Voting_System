@@ -264,7 +264,7 @@ app.post("/election_register", async (req, res) => {
     }
 });
 
-app.get("/view_election_brief", async (req, res) => {
+app.get("/view_ongoing_election_brief", async (req, res) => {
     const sql = `
         SELECT 
             e.id, 
