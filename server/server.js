@@ -250,6 +250,36 @@ app.post("/election_register", async (req, res) => {
     }
 });
 
+app.get("/view_all_election_brief", async (req, res) => {
+    const sql = `
+        SELECT 
+            e.id, 
+            e.topic, 
+            e.description, 
+            e.stop_time, 
+            GROUP_CONCAT(c.photo_url) AS photo_url_list 
+        FROM election_candidate ec 
+        JOIN election e ON ec.election_id = e.id 
+        JOIN candidate c ON ec.candidate_id = c.id 
+        GROUP BY e.id
+    `;
+
+    try {
+        const [result] = await pool.execute(sql);
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        console.error("Error fetching elections:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching elections",
+            error: err.message,
+        });
+    }
+});
+
 app.get("/view_ongoing_election_brief", async (req, res) => {
     const sql = `
         SELECT 
