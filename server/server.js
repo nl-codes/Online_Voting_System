@@ -383,19 +383,26 @@ app.get("/get_future_elections", async (req, res) => {
 });
 
 app.get("/get_candidates_all", async (req, res) => {
-    const sql = "SELECT id, full_name, photo_url FROM candidate";
+    const sql = "SELECT id, full_name, photo_url, saying FROM candidate";
 
     try {
         const [result] = await pool.execute(sql);
+
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No candidates found",
+            });
+        }
         return res.status(200).json({
             success: true,
-            data: result,
+            candidateList: result,
         });
     } catch (err) {
-        console.error("Error fetching elections:", err);
+        console.error("Error fetching candidates:", err);
         return res.status(500).json({
             success: false,
-            message: "Error fetching elections",
+            message: "Error fetching candidates",
             error: err.message,
         });
     }
