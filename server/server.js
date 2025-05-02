@@ -160,24 +160,10 @@ app.get("/user_exists/:email", async (req, res) => {
 });
 
 // Register Candidate
-app.post("/candidate_register", (req, res) => {
-    uploadCandidate.single("photo_url")(req, res, async (err) => {
-        if (err) {
-            console.error("Upload error:", err);
-            return res.status(400).json({
-                success: false,
-                message: "File upload failed",
-                error:
-                    err.code === "LIMIT_FILE_SIZE"
-                        ? "File size is too large"
-                        : err.code === "LIMIT_UNEXPECTED_FILE"
-                        ? "Wrong field name for file upload (expected 'photo_url')"
-                        : err.code === "LIMIT_FILE_COUNT"
-                        ? "Too many files uploaded"
-                        : err.message || "Unknown upload error",
-            });
-        }
-
+app.post(
+    "/candidate_register",
+    uploadCandidate.single("photo_url"),
+    async (req, res) => {
         try {
             const { full_name, saying } = req.body;
 
@@ -220,8 +206,8 @@ app.post("/candidate_register", (req, res) => {
                 error: err.message || "Unknown error",
             });
         }
-    });
-});
+    }
+);
 
 // Register Election
 app.post("/election_register", async (req, res) => {
