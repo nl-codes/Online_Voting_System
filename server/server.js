@@ -160,24 +160,10 @@ app.get("/user_exists/:email", async (req, res) => {
 });
 
 // Register Candidate
-app.post("/candidate_register", (req, res) => {
-    uploadCandidate.single("photo_url")(req, res, async (err) => {
-        if (err) {
-            console.error("Upload error:", err);
-            return res.status(400).json({
-                success: false,
-                message: "File upload failed",
-                error:
-                    err.code === "LIMIT_FILE_SIZE"
-                        ? "File size is too large"
-                        : err.code === "LIMIT_UNEXPECTED_FILE"
-                        ? "Wrong field name for file upload (expected 'photo_url')"
-                        : err.code === "LIMIT_FILE_COUNT"
-                        ? "Too many files uploaded"
-                        : err.message || "Unknown upload error",
-            });
-        }
-
+app.post(
+    "/candidate_register",
+    uploadCandidate.single("photo_url"),
+    async (req, res) => {
         try {
             const { full_name, saying } = req.body;
 
@@ -220,8 +206,8 @@ app.post("/candidate_register", (req, res) => {
                 error: err.message || "Unknown error",
             });
         }
-    });
-});
+    }
+);
 
 // Register Election
 app.post("/election_register", async (req, res) => {
@@ -367,19 +353,26 @@ app.get("/get_future_elections", async (req, res) => {
 });
 
 app.get("/get_candidates_all", async (req, res) => {
-    const sql = "SELECT id, full_name, photo_url FROM candidate";
+    const sql = "SELECT id, full_name, photo_url, saying FROM candidate";
 
     try {
         const [result] = await pool.execute(sql);
+
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No candidates found",
+            });
+        }
         return res.status(200).json({
             success: true,
-            data: result,
+            candidateList: result,
         });
     } catch (err) {
-        console.error("Error fetching elections:", err);
+        console.error("Error fetching candidates:", err);
         return res.status(500).json({
             success: false,
-            message: "Error fetching elections",
+            message: "Error fetching candidates",
             error: err.message,
         });
     }
