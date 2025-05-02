@@ -24,7 +24,7 @@ const UserDashboardPage = () => {
         const fetchElections = async () => {
             try {
                 const response = await fetch(
-                    `${API_BASE_URL}/view_election_brief`
+                    `${API_BASE_URL}/view_ongoing_election_brief`
                 );
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
