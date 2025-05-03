@@ -3,8 +3,11 @@ import ProfileDisplay from "./ProfileDisplay";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import { useNavigate } from "react-router-dom";
 
-const UserProfileForm = ({ userId, onSubmitSuccess }) => {
+const UserProfileForm = ({ userId }) => {
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
         first_name: "First Name",
         last_name: "Last Name",
@@ -12,7 +15,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
         dob: "",
         photo_url: "",
         gender: "",
-        country: "Country Name",
+        country: "",
         user_id: userId,
     });
 
@@ -178,9 +181,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
                 color: "white",
                 background: "#29142e",
             }).then(() => {
-                if (Swal.isConfirmed || Swal.isDismissed) {
-                    onSubmitSuccess();
-                }
+                navigate("/profile");
             });
         } catch (error) {
             Swal.fire({
