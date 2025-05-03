@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import BackButton from "../components/BackButton";
 import { UserContext } from "../context/UserContext";
+import UserProfile from "../components/UserProfile";
 
 const UserProfilePage = () => {
     const { userId } = useContext(UserContext);
