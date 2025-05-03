@@ -49,7 +49,7 @@ const UserDashboardPage = () => {
     };
 
     const handleProfileClick = () => {
-        navigate(`profile/${userId}`);
+        navigate(`/profile/${userId}`);
     };
 
     return (
