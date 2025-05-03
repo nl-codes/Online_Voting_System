@@ -159,6 +159,24 @@ app.get("/user_exists/:email", async (req, res) => {
     }
 });
 
+// Profile Fetch
+app.get("/user_profile/:id", async (req, res) => {
+    const sql =
+        "SELECT first_name, last_name, email, dob, photo_url, gender, country FROM user_detail WHERE id = ?";
+
+    const [profileResult] = await pool.execute(sql, [req.params.id]);
+    if (profileResult.length === 0) {
+        return res.status(200).json({
+            success: false,
+            message: `User with id ${req.params.id} doesn't exist`,
+        });
+    }
+    return res.status(200).json({
+        success: true,
+        data: profileResult[0],
+    });
+});
+
 // Register Candidate
 app.post(
     "/candidate_register",
