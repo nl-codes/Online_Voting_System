@@ -40,12 +40,17 @@ const UserDashboardPage = () => {
         fetchElections();
     }, []);
 
-    const handleVoterPortal = () => {
-        navigate(`/voter_card`);
-    };
     if (!userId) {
         return <UnAuthorized />;
     }
+
+    const handleVoterPortal = () => {
+        navigate(`/voter_card`);
+    };
+
+    const handleProfileClick = () => {
+        navigate(`profile/${userId}`);
+    };
 
     return (
         <div className="bg-[#29142e] h-screen max-w-screen">
@@ -58,7 +63,9 @@ const UserDashboardPage = () => {
                 </button>
                 <p className="text-3xl font-bold">ONLINE VOTING SYSTEM</p>
                 <div className="flex items-center gap-5">
-                    <div className="flex flex-col items-center justify-center px-4 py-2 text-sm cursor-pointer font-bold hover:bg-white hover:text-[#29142e] rounded-2xl">
+                    <div
+                        className="flex flex-col items-center justify-center px-4 py-2 text-sm cursor-pointer font-bold hover:bg-white hover:text-[#29142e] rounded-2xl"
+                        onClick={handleProfileClick}>
                         <ProfileDisplay
                             className="rounded-full border-4 border-[#29142e]"
                             image_url={UraharaChibi}
