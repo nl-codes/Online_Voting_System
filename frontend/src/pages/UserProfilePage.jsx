@@ -10,7 +10,7 @@ const UserProfilePage = () => {
         <div className="bg-[#29142e] h-screen max-w-screen py-4 px-4">
             <div className="flex justify-between items-center ">
                 <BackButton backPath={"/home"} />
-                <EditButton editPath={"/home"} />
+                <EditButton editPath={"/profile/edit"} />
             </div>
             <h1 className="w-full text-4xl text-white font-bold text-center pt-10">
                 User Profile

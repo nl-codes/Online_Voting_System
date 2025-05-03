@@ -12,6 +12,7 @@ import UserProvider from "./context/UserProvider";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminVerifyVoterPage from "./pages/AdminVerifyVoterPage";
 import UserProfilePage from "./pages/UserProfilePage";
+import UserProfileEditPage from "./pages/UserProfileEditPage";
 
 const App = () => {
     return (
@@ -26,6 +27,10 @@ const App = () => {
                     <Route path="/home" element={<UserDashboardPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/profile" element={<UserProfilePage />} />
+                    <Route
+                        path="/profile/edit"
+                        element={<UserProfileEditPage />}
+                    />
                     <Route
                         path="/sec/admin/dashboard"
                         element={<AdminDashboardPage />}
