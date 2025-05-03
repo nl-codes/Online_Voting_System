@@ -48,7 +48,7 @@ const UserDashboardPage = () => {
     }
 
     return (
-        <div className="bg-[#29142e] h-screen w-screen">
+        <div className="bg-[#29142e] h-screen max-w-screen">
             {/* Header */}
             <div className="text-white text-2xl flex items-center justify-between px-20 pt-4">
                 <button
