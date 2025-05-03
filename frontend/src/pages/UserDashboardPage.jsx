@@ -58,9 +58,15 @@ const UserDashboardPage = () => {
                 </button>
                 <p className="text-3xl font-bold">ONLINE VOTING SYSTEM</p>
                 <div className="flex items-center gap-5">
-                    <ProfileDisplay image_url={UraharaChibi} />
+                    <div className="flex flex-col items-center justify-center px-4 py-2 text-sm cursor-pointer font-bold hover:bg-white hover:text-[#29142e] rounded-2xl">
+                        <ProfileDisplay
+                            className="rounded-full border-4 border-[#29142e]"
+                            image_url={UraharaChibi}
+                        />
+                        <span>Profile</span>
+                    </div>
                     <button
-                        className="text-xl text-white font-bold hover:text-[#29142e] w-30 h-10 hover:bg-white px-4 my-4 rounded-2xl"
+                        className="text-xl text-white font-bold hover:text-[#29142e] w-30 h-10 hover:bg-white px-4 my-4 rounded-2xl cursor-pointer"
                         onClick={handleLogout}>
                         Logout
                     </button>
