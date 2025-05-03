@@ -1,18 +1,43 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ProfileDisplay from "./ProfileDisplay";
 import Swal from "sweetalert2";
+import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 const UserProfileForm = ({ userId, onSubmitSuccess }) => {
     const fetchedData = {
-        first_name: "Naruto",
-        last_name: "Uzumaki",
-        email: "Naruto@uzumaki.com",
-        dob: "2000-01-01",
-        photo_url:
-            "https://res.cloudinary.com/duhbs7hqv/image/upload/v1746112439/userProfile_images/naruto.jpg",
-        gender: "Male",
-        country: "Naruto",
+        first_name: "First Name",
+        last_name: "Last Name",
+        email: "email@email.com",
+        dob: "0001-01-01",
+        photo_url: "photo_url",
+        gender: "",
+        country: "Country Name",
     };
+
+    useEffect(() => {
+        const fetchProfileData = async () => {
+            try {
+                const response = await axios.get(
+                    `${API_BASE_URL}/get_user_profile/${userId}`
+                );
+                if (response.status === 200) {
+                    const data = response.data.data;
+                    setFormData((prev) => ({
+                        ...prev,
+                        first_name: data.first_name,
+                        last_name: data.last_name,
+                        email: data.email,
+                        dob: data.dob,
+                        photo_url: data.photo_url,
+                    }));
+                }
+            } catch (error) {
+                console.error("Error fetching profile data: ", error);
+            }
+        };
+        fetchProfileData();
+    }, [userId]);
 
     const [formData, setFormData] = useState({
         first_name: fetchedData.first_name,
@@ -114,12 +139,6 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
 
         try {
             console.log("Submitting form data: ", formDataToSend);
-            console.log("photo_url: ", formDataToSend.get("photo_url"));
-            console.log("Submitting form data: ", formDataToSend);
-            console.log(
-                "Submitting form data: ",
-                formDataToSend.get("country")
-            );
             Swal.fire({
                 title: "Update Successfull",
                 text: "Your profile has been updated successfully.",
