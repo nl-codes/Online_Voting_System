@@ -196,7 +196,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
     };
 
     return (
-        <div className="form max-w-md mx-auto p-6 bg-[#512C59] rounded-lg shadow-xl text-white">
+        <div className="form h-fit max-w-md mx-auto p-6 bg-[#512C59] rounded-lg shadow-xl text-white">
             {/* Profile Picture Section */}
             <div className="mb-6">
                 <div className="flex flex-col items-center">
