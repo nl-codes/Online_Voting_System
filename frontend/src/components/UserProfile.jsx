@@ -21,10 +21,10 @@ const UserProfile = ({ userId }) => {
                 alt_text={`${dummyData.first_name} ${dummyData.last_name}`}
                 className={"mx-auto mb-4"}
             />
-            <h2 className="mb-4 text-gray-800 text-3xl font-bold">
+            <h2 className="my-4 text-gray-800 text-3xl font-bold">
                 {dummyData.first_name} {dummyData.last_name}
             </h2>
-            <div className="flex justify-around text-xl">
+            <div className="flex justify-around text-xl mt-4">
                 <div className="labels flex flex-col gap-4 text-right text-gray-600">
                     <p>
                         <strong>Email</strong>
