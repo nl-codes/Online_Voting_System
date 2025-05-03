@@ -308,7 +308,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
             </div>
 
             <button
-                className="w-full bg-[#c791d4] text-white py-2 px-4 rounded-md hover:bg-[#a764b8] transition-colors duration-300"
+                className="w-full bg-[#c791d4] text-white font-bold py-2 px-4 rounded-md hover:bg-[#a764b8] transition-colors duration-300"
                 onClick={handleSubmit}>
                 Update Profile
             </button>
