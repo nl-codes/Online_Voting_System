@@ -40,15 +40,20 @@ const UserDashboardPage = () => {
         fetchElections();
     }, []);
 
-    const handleVoterPortal = () => {
-        navigate(`/voter_card`);
-    };
     if (!userId) {
         return <UnAuthorized />;
     }
 
+    const handleVoterPortal = () => {
+        navigate(`/voter_card`);
+    };
+
+    const handleProfileClick = () => {
+        navigate("/profile");
+    };
+
     return (
-        <div className="bg-[#29142e] h-screen w-screen">
+        <div className="bg-[#29142e] h-screen max-w-screen">
             {/* Header */}
             <div className="text-white text-2xl flex items-center justify-between px-20 pt-4">
                 <button
@@ -58,9 +63,17 @@ const UserDashboardPage = () => {
                 </button>
                 <p className="text-3xl font-bold">ONLINE VOTING SYSTEM</p>
                 <div className="flex items-center gap-5">
-                    <ProfileDisplay image_url={UraharaChibi} />
+                    <div
+                        className="flex flex-col items-center justify-center px-4 py-2 text-sm cursor-pointer font-bold hover:bg-white hover:text-[#29142e] rounded-2xl"
+                        onClick={handleProfileClick}>
+                        <ProfileDisplay
+                            className="rounded-full border-4 border-[#29142e]"
+                            image_url={UraharaChibi}
+                        />
+                        <span>Profile</span>
+                    </div>
                     <button
-                        className="text-xl text-white font-bold hover:text-[#29142e] w-30 h-10 hover:bg-white px-4 my-4 rounded-2xl"
+                        className="text-xl text-white font-bold hover:text-[#29142e] w-30 h-10 hover:bg-white px-4 my-4 rounded-2xl cursor-pointer"
                         onClick={handleLogout}>
                         Logout
                     </button>
