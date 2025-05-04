@@ -20,7 +20,7 @@ const AdminViewElectionPage = () => {
                 console.log(response);
                 if (response.status === 200) {
                     if (response.data.success) {
-                        setElections(response.data.electionList);
+                        setElections(response.data.data);
                     }
                 }
                 setLoading(false);
