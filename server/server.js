@@ -159,6 +159,79 @@ app.get("/user_exists/:email", async (req, res) => {
     }
 });
 
+// Profile Fetch
+app.get("/user_profile/:id", async (req, res) => {
+    const sql =
+        "SELECT first_name, last_name, email, dob, photo_url, gender, country FROM user_detail WHERE id = ?";
+
+    const [profileResult] = await pool.execute(sql, [req.params.id]);
+    if (profileResult.length === 0) {
+        return res.status(200).json({
+            success: false,
+            message: `User with id ${req.params.id} doesn't exist`,
+        });
+    }
+    return res.status(200).json({
+        success: true,
+        data: profileResult[0],
+    });
+});
+
+// Profile Update
+app.put(
+    "/user_profile_update",
+    uploadUserProfile.single("photo_url"),
+    async (req, res) => {
+        try {
+            const { userId, gender, country } = req.body;
+            let updateFields = [];
+            let values = [];
+
+            // Check required fields
+            if (!userId || !gender || !country) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Missing required fields",
+                });
+            }
+
+            // Build dynamic SQL query based on provided fields
+            if (gender) {
+                updateFields.push("gender = ?");
+                values.push(gender);
+            }
+            if (country) {
+                updateFields.push("country = ?");
+                values.push(country);
+            }
+            if (req.file) {
+                updateFields.push("photo_url = ?");
+                values.push(req.file.path);
+            }
+
+            // Add userId at the end of values array for WHERE clause
+            values.push(userId);
+
+            const sql = `UPDATE user_detail SET ${updateFields.join(
+                ", "
+            )} WHERE id = ?`;
+
+            await pool.execute(sql, values);
+
+            return res.status(200).json({
+                success: true,
+                message: "User Profile updated successfully",
+            });
+        } catch (error) {
+            console.error("Update error:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Server error: " + error.message,
+            });
+        }
+    }
+);
+
 // Register Candidate
 app.post(
     "/candidate_register",

@@ -1,7 +1,7 @@
 import React from "react";
 import ProfileDisplay from "./ProfileDisplay";
 
-const UserProfile = ({ userId }) => {
+const UserProfile = () => {
     const dummyData = {
         first_name: "Uzumaki",
         last_name: "Naruto",
