@@ -15,7 +15,7 @@ const AdminViewElectionPage = () => {
             try {
                 setLoading(true);
                 const response = await axios.get(
-                    `${API_BASE_URL}/get_elections_all`
+                    `${API_BASE_URL}/get_all_elections`
                 );
                 console.log(response);
                 if (response.status === 200) {
