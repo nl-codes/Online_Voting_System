@@ -3,23 +3,34 @@ import ProfileDisplay from "./ProfileDisplay";
 import Swal from "sweetalert2";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import { useNavigate } from "react-router-dom";
 
-const UserProfileForm = ({ userId, onSubmitSuccess }) => {
-    const fetchedData = {
+const UserProfileForm = ({ userId }) => {
+    const navigate = useNavigate();
+
+    const [formData, setFormData] = useState({
         first_name: "First Name",
         last_name: "Last Name",
         email: "email@email.com",
-        dob: "0001-01-01",
-        photo_url: "photo_url",
+        dob: "",
+        photo_url: "",
         gender: "",
-        country: "Country Name",
+        country: "",
+        user_id: userId,
+    });
+
+    // Format Date to YYYY-MM-DD
+    const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toISOString().split("T")[0];
     };
 
     useEffect(() => {
         const fetchProfileData = async () => {
             try {
                 const response = await axios.get(
-                    `${API_BASE_URL}/get_user_profile/${userId}`
+                    `${API_BASE_URL}/user_profile/${userId}`
                 );
                 if (response.status === 200) {
                     const data = response.data.data;
@@ -28,7 +39,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
                         first_name: data.first_name,
                         last_name: data.last_name,
                         email: data.email,
-                        dob: data.dob,
+                        dob: formatDate(data.dob),
                         photo_url: data.photo_url,
                     }));
                 }
@@ -38,17 +49,6 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
         };
         fetchProfileData();
     }, [userId]);
-
-    const [formData, setFormData] = useState({
-        first_name: fetchedData.first_name,
-        last_name: fetchedData.last_name,
-        email: fetchedData.email,
-        dob: fetchedData.dob,
-        photo_url: fetchedData.photo_url,
-        gender: fetchedData.gender,
-        country: fetchedData.country,
-        user_id: userId,
-    });
 
     const [preview, setPreview] = useState(null);
 
@@ -123,6 +123,27 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
         return Object.keys(newErrors).length === 0;
     };
 
+    const updateUserProfile = async (formData) => {
+        try {
+            const response = await axios.put(
+                `${API_BASE_URL}/user_profile_update`,
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                    },
+                }
+            );
+            if (response.status === 200) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (error) {
+            console.log("Error updating user profile: ", error);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -135,10 +156,22 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
         formDataToSend.append("photo_url", formData.photo_url);
         formDataToSend.append("gender", formData.gender);
         formDataToSend.append("country", formData.country);
-        formDataToSend.append("user_id", userId);
+        formDataToSend.append("userId", userId);
 
         try {
-            console.log("Submitting form data: ", formDataToSend);
+            const isUpdated = await updateUserProfile(formDataToSend);
+            if (!isUpdated) {
+                Swal.fire({
+                    title: "Error!",
+                    icon: "error",
+                    text: "Failed to update profile. Please try again later.",
+                    iconColor: "red",
+                    color: "white",
+                    background: "#29142e",
+                });
+                return;
+            }
+            // Show success message
             Swal.fire({
                 title: "Update Successfull",
                 text: "Your profile has been updated successfully.",
@@ -148,9 +181,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
                 color: "white",
                 background: "#29142e",
             }).then(() => {
-                if (Swal.isConfirmed || Swal.isDismissed) {
-                    onSubmitSuccess();
-                }
+                navigate("/profile");
             });
         } catch (error) {
             Swal.fire({
@@ -166,7 +197,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
     };
 
     return (
-        <div className="form max-w-md mx-auto p-6 bg-[#512C59] rounded-lg shadow-xl text-white">
+        <div className="form h-fit max-w-md mx-auto p-6 bg-[#512C59] rounded-lg shadow-xl text-white">
             {/* Profile Picture Section */}
             <div className="mb-6">
                 <div className="flex flex-col items-center">
@@ -278,7 +309,7 @@ const UserProfileForm = ({ userId, onSubmitSuccess }) => {
             </div>
 
             <button
-                className="w-full bg-[#c791d4] text-white py-2 px-4 rounded-md hover:bg-[#a764b8] transition-colors duration-300"
+                className="w-full bg-[#c791d4] text-white font-bold py-2 px-4 rounded-md hover:bg-[#a764b8] transition-colors duration-300"
                 onClick={handleSubmit}>
                 Update Profile
             </button>
