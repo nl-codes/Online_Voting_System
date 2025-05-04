@@ -13,6 +13,10 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminVerifyVoterPage from "./pages/AdminVerifyVoterPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import UserProfileEditPage from "./pages/UserProfileEditPage";
+import AdminViewElectionPage from "./pages/AdminViewElectionPage";
+import AdminCreateElectionPage from "./pages/AdminCreateElectionPage";
+import AdminViewCandidatePage from "./pages/AdminViewCandidatePage";
+import AdminCreateCandidatePage from "./pages/AdminCreateCandidatesPage";
 
 const App = () => {
     return (
@@ -34,6 +38,22 @@ const App = () => {
                     <Route
                         path="/sec/admin/dashboard"
                         element={<AdminDashboardPage />}
+                    />
+                    <Route
+                        path="/sec/admin/view/election"
+                        element={<AdminViewElectionPage />}
+                    />
+                    <Route
+                        path="/sec/admin/create/election"
+                        element={<AdminCreateElectionPage />}
+                    />
+                    <Route
+                        path="/sec/admin/view/candidate"
+                        element={<AdminViewCandidatePage />}
+                    />
+                    <Route
+                        path="/sec/admin/create/candidate"
+                        element={<AdminCreateCandidatePage />}
                     />
                     <Route
                         path="/sec/admin/assign/candidate"

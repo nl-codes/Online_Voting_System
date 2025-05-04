@@ -332,6 +332,30 @@ app.get("/view_election_full/:id", async (req, res) => {
     }
 });
 
+app.get("/get_all_elections", async (req, res) => {
+    const sql = "SELECT * FROM election ";
+
+    try {
+        const [electionResult] = await pool.execute(sql);
+        if (electionResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No elections found",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            data: electionResult,
+        });
+    } catch (error) {
+        console.error("Error fetching elections: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching elections",
+        });
+    }
+});
+
 app.get("/get_future_elections", async (req, res) => {
     const sql =
         "SELECT id, topic, position FROM election WHERE start_time > NOW()";
