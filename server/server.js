@@ -449,6 +449,26 @@ app.get("/get_future_elections", async (req, res) => {
     }
 });
 
+app.post("/archive_election", async (req, res) => {
+    const { election_id } = req.body;
+
+    if (!election_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Election ID is required",
+        });
+    }
+
+    try {
+    } catch (error) {
+        console.error("Error archiving election:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error while archiving election",
+        });
+    }
+});
+
 app.get("/get_candidates_all", async (req, res) => {
     const sql = "SELECT id, full_name, photo_url, saying FROM candidate";
 
