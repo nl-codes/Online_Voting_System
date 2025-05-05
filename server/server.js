@@ -507,6 +507,11 @@ app.post("/archive_election", async (req, res) => {
             "INSERT INTO archived_elections (original_election_id, votes_snapshot) VALUES (?, ?)",
             [election_id, JSON.stringify(votes_snapshot)]
         );
+        // Step 4: Update election as archived
+        await pool.execute(
+            "UPDATE election SET isArchived = TRUE WHERE id = ?",
+            [election_id]
+        );
     } catch (error) {
         console.error("Error archiving election:", error);
         return res.status(500).json({
