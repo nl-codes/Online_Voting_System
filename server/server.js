@@ -491,6 +491,22 @@ app.post("/archive_election", async (req, res) => {
                 message: "Only ongoing elections can be archived",
             });
         }
+        // Step 2: Get vote snapshot
+        const [voteRows] = await pool.execute(
+            "SELECT candidate_id, votes FROM election_candidate WHERE election_id = ?",
+            [election_id]
+        );
+
+        const votes_snapshot = {};
+        voteRows.forEach((row) => {
+            votes_snapshot[row.candidate_id] = row.votes;
+        });
+
+        // Step 3: Insert into archived_elections
+        await pool.execute(
+            "INSERT INTO archived_elections (original_election_id, votes_snapshot) VALUES (?, ?)",
+            [election_id, JSON.stringify(votes_snapshot)]
+        );
     } catch (error) {
         console.error("Error archiving election:", error);
         return res.status(500).json({
