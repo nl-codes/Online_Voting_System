@@ -537,6 +537,13 @@ app.get("/get_archive_elections", async (req, res) => {
     const sql = "SELECT * FROM archived_elections";
 
     try {
+        const [result] = await pool.execute(sql);
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No archived elections found",
+            });
+        }
     } catch (error) {
         console.error("Error fetching archived elections: ", error);
         return res.status(500).json({
