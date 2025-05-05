@@ -472,6 +472,18 @@ app.post("/archive_election", async (req, res) => {
                 message: "Election not found",
             });
         }
+
+        const election = electionRows[0];
+        const now = new Date();
+        const start = new Date(election.start_time);
+        const stop = new Date(election.stop_time);
+
+        if (election.isArchived) {
+            return res.status(400).json({
+                success: false,
+                message: "Election is already archived",
+            });
+        }
     } catch (error) {
         console.error("Error archiving election:", error);
         return res.status(500).json({
