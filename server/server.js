@@ -520,6 +520,10 @@ app.post("/archive_election", async (req, res) => {
         await pool.execute("DELETE FROM votes WHERE election_id = ?", [
             election_id,
         ]);
+        return res.status(200).json({
+            success: true,
+            message: "Election archived successfully",
+        });
     } catch (error) {
         console.error("Error archiving election:", error);
         return res.status(500).json({
