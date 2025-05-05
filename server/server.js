@@ -484,6 +484,13 @@ app.post("/archive_election", async (req, res) => {
                 message: "Election is already archived",
             });
         }
+
+        if (!(now >= start && now <= stop)) {
+            return res.status(400).json({
+                success: false,
+                message: "Only ongoing elections can be archived",
+            });
+        }
     } catch (error) {
         console.error("Error archiving election:", error);
         return res.status(500).json({
