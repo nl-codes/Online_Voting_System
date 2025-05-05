@@ -544,6 +544,11 @@ app.get("/get_archive_elections", async (req, res) => {
                 message: "No archived elections found",
             });
         }
+
+        return res.status(200).json({
+            success: true,
+            archivedElections: result,
+        });
     } catch (error) {
         console.error("Error fetching archived elections: ", error);
         return res.status(500).json({
