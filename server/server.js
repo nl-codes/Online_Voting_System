@@ -460,6 +460,18 @@ app.post("/archive_election", async (req, res) => {
     }
 
     try {
+        // Step 1: Check if election exists and is ongoing
+        const [electionRows] = await pool.execute(
+            "SELECT * FROM election WHERE id = ?",
+            [election_id]
+        );
+
+        if (electionRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Election not found",
+            });
+        }
     } catch (error) {
         console.error("Error archiving election:", error);
         return res.status(500).json({
