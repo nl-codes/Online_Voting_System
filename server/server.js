@@ -584,6 +584,14 @@ app.get("/restart_election/:id", async (req, res) => {
                 message: "Eletion is not archived",
             });
         }
+
+        const updateSql = "UPDATE election SET isArchived = FALSE WHERE id = ?";
+        await pool.execute(updateSql, [electionId]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Election restarted successfully",
+        });
     } catch (error) {
         console.error("Error restarting election: ", error);
         return res.status(400).json({
