@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import TimeRemaining from "./TimeRemaining";
 
 const AdminElectionCard = ({ election }) => {
     const { id, topic, description, position, start_time, stop_time } =
