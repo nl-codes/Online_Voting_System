@@ -491,21 +491,45 @@ app.post("/archive_election", async (req, res) => {
                 message: "Only ongoing elections can be archived",
             });
         }
-        // Step 2: Get vote snapshot
-        const [voteRows] = await pool.execute(
-            "SELECT candidate_id, votes FROM election_candidate WHERE election_id = ?",
+        // Step 2: Get candidates and their votes
+        const [candidateRows] = await pool.execute(
+            "SELECT c.id, c.full_name, ec.votes FROM candidate c JOIN election_candidate ec ON c.id = ec.candidate_id WHERE ec.election_id = ?",
             [election_id]
         );
 
-        const votes_snapshot = {};
-        voteRows.forEach((row) => {
-            votes_snapshot[row.candidate_id] = row.votes;
-        });
+        const formatDateTime = (date) => {
+            return new Date(date).toLocaleString("en-US", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: true,
+            });
+        };
 
-        // Step 3: Insert into archived_elections
+        const original_schedule = `${formatDateTime(start)}|${formatDateTime(
+            stop
+        )}`;
+
+        // Create separate lists for candidates and votes
+        const candidate_list = candidateRows
+            .map((row) => row.full_name)
+            .join("|");
+        const votes_list = candidateRows.map((row) => row.votes).join("|");
+
+        // Step 3: Insert into archived_elections with separate lists
         await pool.execute(
-            "INSERT INTO archived_elections (original_election_id, votes_snapshot) VALUES (?, ?)",
-            [election_id, JSON.stringify(votes_snapshot)]
+            "INSERT INTO archived_elections (original_election_id, original_topic, original_description, original_position, original_schedule, original_candidates, original_votes) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [
+                election_id,
+                election.topic,
+                election.description,
+                election.position,
+                original_schedule,
+                candidate_list,
+                votes_list,
+            ]
         );
         // Step 4: Update election as archived
         await pool.execute(
