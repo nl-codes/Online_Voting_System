@@ -20,6 +20,9 @@ const AdminArchivedElectionCard = ({ election }) => {
         });
     };
 
+    const candidates = original_candidates.split("|");
+    const votes = original_votes.split("|");
+
     return <div></div>;
 };
 
