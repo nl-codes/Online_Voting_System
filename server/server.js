@@ -467,7 +467,7 @@ app.post("/archive_election", async (req, res) => {
         );
 
         if (electionRows.length === 0) {
-            return res.status(404).json({
+            return res.status(200).json({
                 success: false,
                 message: "Election not found",
             });
@@ -479,14 +479,14 @@ app.post("/archive_election", async (req, res) => {
         const stop = new Date(election.stop_time);
 
         if (election.isArchived) {
-            return res.status(400).json({
+            return res.status(200).json({
                 success: false,
                 message: "Election is already archived",
             });
         }
 
         if (!(now >= start && now <= stop)) {
-            return res.status(400).json({
+            return res.status(200).json({
                 success: false,
                 message: "Only ongoing elections can be archived",
             });
