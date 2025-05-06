@@ -571,6 +571,12 @@ app.get("/get_election_archive_status/:id", async (req, res) => {
                 message: "Election not found",
             });
         }
+        const isArchived = result[0].isArchived === 1 ? true : false;
+
+        return res.status(200).json({
+            success: true,
+            isArchived: isArchived,
+        });
     } catch (error) {
         console.error("Error fetching election archive status: ", error);
         return res.status(500).json({
