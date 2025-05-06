@@ -562,7 +562,7 @@ app.get("/restart_election/:id", async (req, res) => {
     const electionId = req.params.id;
 
     try {
-        const checkEletionSql = "SELECT 1 FROM eletion WHERE id = ?";
+        const checkEletionSql = "SELECT 1 FROM election WHERE id = ?";
         const [resultCheckElection] = await pool.execute(checkEletionSql, [
             electionId,
         ]);
