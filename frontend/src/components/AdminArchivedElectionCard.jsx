@@ -75,6 +75,26 @@ const AdminArchivedElectionCard = ({ election }) => {
                     </div>
                 </div>
             </div>
+            {/* Candidates and Votes Section */}
+            <div className="results-section mb-6">
+                <h3 className="text-xl font-semibold mb-4">
+                    Election Results:
+                </h3>
+                <div className="flex flex-col gap-4 w-1/2 mx-auto">
+                    <div className="text-[#c791d4] font-semibold text-lg flex justify-between">
+                        <span>Candidates</span>
+                        <span>Votes</span>
+                    </div>
+                    {candidates.map((candidate, index) => (
+                        <div
+                            className="text-gray-300 font-semibold text-lg flex justify-between"
+                            key={index}>
+                            <span>{candidate}</span>
+                            <span>{votes[index]}</span>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };
