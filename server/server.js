@@ -558,6 +558,19 @@ app.get("/get_archive_elections", async (req, res) => {
     }
 });
 
+app.get("/get_election_archive_status/:id", async (req, res) => {
+    const electionId = req.params.id;
+
+    try {
+    } catch (error) {
+        console.error("Error fetching election archive status: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching election's archive status",
+        });
+    }
+});
+
 app.get("/restart_election/:id", async (req, res) => {
     const electionId = req.params.id;
 
