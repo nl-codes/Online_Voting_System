@@ -53,9 +53,12 @@ const AdminArchivedElectionsPage = () => {
                         </p>
                     ) : (
                         <div>
-                            <AdminArchivedElectionCard
-                                election={elections[0]}
-                            />
+                            {elections.map((election) => (
+                                <AdminArchivedElectionCard
+                                    key={election.id}
+                                    election={election}
+                                />
+                            ))}
                         </div>
                     )}
                 </div>
