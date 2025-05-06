@@ -85,6 +85,8 @@ const AdminElectionCard = ({ election }) => {
         }
     };
 
+    const handleArchive = () => {};
+
     return (
         <div className="election-card flex flex-col w-full max-w-3xl bg-[#29142e] text-[#f6eef8] p-6 m-4 rounded-xl border-[#f6eef8] border-4 shadow-lg shadow-[#f6eef8] hover:shadow-xl transition-all duration-300">
             {/* Header Section */}
@@ -124,7 +126,9 @@ const AdminElectionCard = ({ election }) => {
 
             {/* Archive Button */}
             <div className="archive-button mt-6 flex justify-center">
-                <button className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300">
+                <button
+                    className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300"
+                    onClick={handleArchive}>
                     Archive Election
                 </button>
             </div>
