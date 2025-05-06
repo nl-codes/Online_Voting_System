@@ -38,7 +38,7 @@ const AdminArchivedElectionCard = ({ election }) => {
                         </span>
                     </p>
                 </div>
-                <div className="archived-at bg-[#334155] p-3 rounded-lg">
+                <div className="archived-at bg-[#512C59] p-3 rounded-lg">
                     <span className="font-bold text-yellow-400">
                         Archived At: {formatDate(archived_at)}
                     </span>
