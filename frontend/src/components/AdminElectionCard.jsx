@@ -69,6 +69,7 @@ const AdminElectionCard = ({ election }) => {
                 if (response.data.success) {
                     Swal.fire({
                         icon: "success",
+                        iconColor: "#008000",
                         title: "Success",
                         text: "Election archived successfully!",
                         background: "#512C59",
@@ -77,7 +78,8 @@ const AdminElectionCard = ({ election }) => {
                 } else {
                     Swal.fire({
                         icon: "error",
-                        title: "Error",
+                        iconColor: "#FF0000",
+                        title: "Can't archive Election",
                         text: response.data.message,
                         background: "#512C59",
                         color: "#ffffff",
