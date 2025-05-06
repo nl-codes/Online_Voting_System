@@ -2,10 +2,11 @@ import React, { useEffect, useState } from "react";
 import AdminSidebar from "../components/AdminSidebar";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import LoadingDots from "../components/LoadingDots";
 
 const AdminArchivedElectionsPage = () => {
     const [elections, setElections] = useState([]);
-    const [Loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -38,7 +39,21 @@ const AdminArchivedElectionsPage = () => {
                 <p className="text-center text-2xl font-bold">
                     Archived Elections List
                 </p>
-                <div></div>
+                <div>
+                    {loading ? (
+                        <LoadingDots />
+                    ) : error ? (
+                        <p className="text-red-500 font-bold text-center">
+                            {error}
+                        </p>
+                    ) : elections.length === 0 ? (
+                        <p className="text-white font-bold text-center">
+                            No Elections Archived
+                        </p>
+                    ) : (
+                        <div> </div>
+                    )}
+                </div>
             </div>
         </div>
     );
