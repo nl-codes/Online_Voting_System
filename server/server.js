@@ -562,6 +562,16 @@ app.get("/restart_election/:id", async (req, res) => {
     const electionId = req.params.id;
 
     try {
+        const checkEletionSql = "SELECT 1 FROM eletion WHERE id = ?";
+        const [resultCheckElection] = await pool.execute(checkEletionSql, [
+            electionId,
+        ]);
+        if (resultCheckElection.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Election doesn't exist",
+            });
+        }
     } catch (error) {
         console.error("Error restarting election: ", error);
         return res.status(400).json({
