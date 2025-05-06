@@ -17,6 +17,10 @@ const AdminSidebar = () => {
                 navigationLink={"/sec/admin/create/election"}
             />
             <AdminSidebarLinks
+                btnName={"Archived Election"}
+                navigationLink={"/sec/admin/archived/election"}
+            />
+            <AdminSidebarLinks
                 btnName={"View Candidate"}
                 navigationLink={"/sec/admin/view/candidate"}
             />
