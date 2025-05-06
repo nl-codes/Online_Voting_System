@@ -116,6 +116,39 @@ const AdminElectionCard = ({ election }) => {
             }
         });
     };
+
+    const restartElection = async () => {
+        try {
+            const response = axios.get(
+                `${API_BASE_URL}/restart_election/${id}`
+            );
+            console.log(response);
+            if (response.status === 200) {
+                if (response.data.success) {
+                    Swal.fire({
+                        icon: "success",
+                        iconColor: "#008000",
+                        title: "Success",
+                        text: "Election restarted successfully!",
+                        background: "#512C59",
+                        color: "#ffffff",
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        iconColor: "#FF0000",
+                        title: "Can't restart Election",
+                        text: response.data.message,
+                        background: "#512C59",
+                        color: "#ffffff",
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error restarting election: ", error);
+        }
+    };
+
     const handleRestart = () => {
         Swal.fire({
             title: "Do you really want to restart election?",
@@ -129,6 +162,7 @@ const AdminElectionCard = ({ election }) => {
             confirmButtonText: "Yes, restart it!",
         }).then((result) => {
             if (result.isConfirmed) {
+                restartElection();
             }
         });
     };
