@@ -37,7 +37,7 @@ const AdminArchivedElectionsPage = () => {
         <div className="bg-[#29142e] min-h-screen max-w-screen flex pr-8">
             <AdminSidebar />
             <div className="flex flex-col items-center pt-10 pl-4 w-full text-white main-page-content">
-                <p className="text-center text-2xl font-bold">
+                <p className="text-center text-2xl font-bold mb-8">
                     Archived Elections List
                 </p>
                 <div>
