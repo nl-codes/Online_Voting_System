@@ -113,6 +113,7 @@ const AdminElectionCard = ({ election }) => {
         }).then((result) => {
             if (result.isConfirmed) {
                 archiveElection();
+                window.location.reload();
             }
         });
     };
@@ -163,6 +164,7 @@ const AdminElectionCard = ({ election }) => {
         }).then((result) => {
             if (result.isConfirmed) {
                 restartElection();
+                window.location.reload();
             }
         });
     };
