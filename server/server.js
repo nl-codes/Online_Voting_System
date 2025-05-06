@@ -585,6 +585,18 @@ app.get("/restart_election/:id", async (req, res) => {
             });
         }
 
+        const checkElectionArchivedStatusSql =
+            "SELECT 1 FROM election WHERE id = ? AND isArchived = TRUE";
+        const [resultCheckElectionArchivedStatus] = await pool.execute(
+            checkElectionArchivedStatusSql,
+            [electionId]
+        );
+        if (resultCheckElectionArchivedStatus.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Election is already re-started",
+            });
+        }
         const updateSql = "UPDATE election SET isArchived = FALSE WHERE id = ?";
         await pool.execute(updateSql, [electionId]);
 
