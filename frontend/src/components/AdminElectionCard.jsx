@@ -116,6 +116,22 @@ const AdminElectionCard = ({ election }) => {
             }
         });
     };
+    const handleRestart = () => {
+        Swal.fire({
+            title: "Do you really want to restart election?",
+            icon: "question",
+            iconColor: "#FFA500",
+            background: "#512C59",
+            color: "#ffffff",
+            showCancelButton: true,
+            confirmButtonColor: "#008000",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, restart it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+            }
+        });
+    };
 
     return (
         <div className="election-card flex flex-col w-full max-w-3xl bg-[#29142e] text-[#f6eef8] p-6 m-4 rounded-xl border-[#f6eef8] border-4 shadow-lg shadow-[#f6eef8] hover:shadow-xl transition-all duration-300">
@@ -172,6 +188,11 @@ const AdminElectionCard = ({ election }) => {
                     </p>
                 </div>
                 <div>
+                    <button
+                        className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300"
+                        onClick={handleRestart}>
+                        Restart Election
+                    </button>
                     <button
                         className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300"
                         onClick={handleArchive}>
