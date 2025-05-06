@@ -81,6 +81,10 @@ const AdminElectionCard = ({ election }) => {
                         text: "Election archived successfully!",
                         background: "#512C59",
                         color: "#ffffff",
+                    }).then((result) => {
+                        if (result.isConfirmed || result.isDismissed) {
+                            window.location.reload();
+                        }
                     });
                 } else {
                     Swal.fire({
@@ -90,6 +94,10 @@ const AdminElectionCard = ({ election }) => {
                         text: response.data.message,
                         background: "#512C59",
                         color: "#ffffff",
+                    }).then((result) => {
+                        if (result.isConfirmed || result.isDismissed) {
+                            window.location.reload();
+                        }
                     });
                 }
             }
@@ -113,7 +121,6 @@ const AdminElectionCard = ({ election }) => {
         }).then((result) => {
             if (result.isConfirmed) {
                 archiveElection();
-                window.location.reload();
             }
         });
     };
@@ -133,6 +140,10 @@ const AdminElectionCard = ({ election }) => {
                         text: "Election restarted successfully!",
                         background: "#512C59",
                         color: "#ffffff",
+                    }).then((result) => {
+                        if (result.isConfirmed || result.isDismissed) {
+                            window.location.reload();
+                        }
                     });
                 } else {
                     Swal.fire({
@@ -142,6 +153,10 @@ const AdminElectionCard = ({ election }) => {
                         text: response.data.message,
                         background: "#512C59",
                         color: "#ffffff",
+                    }).then((result) => {
+                        if (result.isConfirmed || result.isDismissed) {
+                            window.location.reload();
+                        }
                     });
                 }
             }
@@ -164,7 +179,6 @@ const AdminElectionCard = ({ election }) => {
         }).then((result) => {
             if (result.isConfirmed) {
                 restartElection();
-                window.location.reload();
             }
         });
     };
