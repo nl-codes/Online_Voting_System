@@ -619,7 +619,7 @@ app.get("/restart_election/:id", async (req, res) => {
             electionId,
         ]);
         if (resultCheckElection.length === 0) {
-            return res.status(200).json({
+            return res.status(400).json({
                 success: false,
                 message: "Election doesn't exist",
             });
@@ -644,7 +644,7 @@ app.get("/restart_election/:id", async (req, res) => {
             [electionId]
         );
         if (resultCheckElectionArchivedStatus.length === 0) {
-            return res.status(400).json({
+            return res.status(200).json({
                 success: false,
                 message: "Election is already re-started",
             });
