@@ -119,7 +119,7 @@ const AdminElectionCard = ({ election }) => {
 
     const restartElection = async () => {
         try {
-            const response = axios.get(
+            const response = await axios.get(
                 `${API_BASE_URL}/restart_election/${id}`
             );
             console.log(response);
