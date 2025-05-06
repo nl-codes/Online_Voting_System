@@ -71,12 +71,16 @@ const AdminElectionCard = ({ election }) => {
                         icon: "success",
                         title: "Success",
                         text: "Election archived successfully!",
+                        background: "#512C59",
+                        color: "#ffffff",
                     });
                 } else {
                     Swal.fire({
                         icon: "error",
                         title: "Error",
                         text: response.data.message,
+                        background: "#512C59",
+                        color: "#ffffff",
                     });
                 }
             }
