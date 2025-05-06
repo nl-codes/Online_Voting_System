@@ -449,6 +449,198 @@ app.get("/get_future_elections", async (req, res) => {
     }
 });
 
+app.post("/archive_election", async (req, res) => {
+    const { election_id } = req.body;
+
+    if (!election_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Election ID is required",
+        });
+    }
+
+    try {
+        // Step 1: Check if election exists and is ongoing
+        const [electionRows] = await pool.execute(
+            "SELECT * FROM election WHERE id = ?",
+            [election_id]
+        );
+
+        if (electionRows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Election not found",
+            });
+        }
+
+        const election = electionRows[0];
+        const now = new Date();
+        const start = new Date(election.start_time);
+        const stop = new Date(election.stop_time);
+
+        if (election.isArchived) {
+            return res.status(400).json({
+                success: false,
+                message: "Election is already archived",
+            });
+        }
+
+        if (!(now >= start && now <= stop)) {
+            return res.status(400).json({
+                success: false,
+                message: "Only ongoing elections can be archived",
+            });
+        }
+        // Step 2: Get vote snapshot
+        const [voteRows] = await pool.execute(
+            "SELECT candidate_id, votes FROM election_candidate WHERE election_id = ?",
+            [election_id]
+        );
+
+        const votes_snapshot = {};
+        voteRows.forEach((row) => {
+            votes_snapshot[row.candidate_id] = row.votes;
+        });
+
+        // Step 3: Insert into archived_elections
+        await pool.execute(
+            "INSERT INTO archived_elections (original_election_id, votes_snapshot) VALUES (?, ?)",
+            [election_id, JSON.stringify(votes_snapshot)]
+        );
+        // Step 4: Update election as archived
+        await pool.execute(
+            "UPDATE election SET isArchived = TRUE WHERE id = ?",
+            [election_id]
+        );
+        // Step 5: Reset candidate votes
+        await pool.execute(
+            "UPDATE election_candidate SET votes = 0 WHERE election_id = ?",
+            [election_id]
+        );
+        await pool.execute("DELETE FROM votes WHERE election_id = ?", [
+            election_id,
+        ]);
+        return res.status(200).json({
+            success: true,
+            message: "Election archived successfully",
+        });
+    } catch (error) {
+        console.error("Error archiving election:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error while archiving election",
+        });
+    }
+});
+
+app.get("/get_archive_elections", async (req, res) => {
+    const sql = "SELECT * FROM archived_elections";
+
+    try {
+        const [result] = await pool.execute(sql);
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No archived elections found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            archivedElections: result,
+        });
+    } catch (error) {
+        console.error("Error fetching archived elections: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching archived elections",
+        });
+    }
+});
+
+app.get("/get_election_archive_status/:id", async (req, res) => {
+    const electionId = req.params.id;
+
+    try {
+        const sql = "SELECT isArchived FROM election WHERE id = ?";
+        const [result] = await pool.execute(sql, [electionId]);
+
+        if (result.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Election not found",
+            });
+        }
+        const isArchived = result[0].isArchived === 1 ? true : false;
+
+        return res.status(200).json({
+            success: true,
+            isArchived: isArchived,
+        });
+    } catch (error) {
+        console.error("Error fetching election archive status: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching election's archive status",
+        });
+    }
+});
+
+app.get("/restart_election/:id", async (req, res) => {
+    const electionId = req.params.id;
+
+    try {
+        const checkElectionSql = "SELECT 1 FROM election WHERE id = ?";
+        const [resultCheckElection] = await pool.execute(checkElectionSql, [
+            electionId,
+        ]);
+        if (resultCheckElection.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Election doesn't exist",
+            });
+        }
+
+        const checkArchivedSql =
+            "SELECT 1 FROM archived_elections WHERE original_election_id = ?";
+        const [resultCheckArchive] = await pool.execute(checkArchivedSql, [
+            electionId,
+        ]);
+        if (resultCheckArchive.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Election is not archived",
+            });
+        }
+
+        const checkElectionArchivedStatusSql =
+            "SELECT 1 FROM election WHERE id = ? AND isArchived = TRUE";
+        const [resultCheckElectionArchivedStatus] = await pool.execute(
+            checkElectionArchivedStatusSql,
+            [electionId]
+        );
+        if (resultCheckElectionArchivedStatus.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Election is already re-started",
+            });
+        }
+        const updateSql = "UPDATE election SET isArchived = FALSE WHERE id = ?";
+        await pool.execute(updateSql, [electionId]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Election restarted successfully",
+        });
+    } catch (error) {
+        console.error("Error restarting election: ", error);
+        return res.status(400).json({
+            success: false,
+            message: "Error restarting election",
+        });
+    }
+});
+
 app.get("/get_candidates_all", async (req, res) => {
     const sql = "SELECT id, full_name, photo_url, saying FROM candidate";
 
