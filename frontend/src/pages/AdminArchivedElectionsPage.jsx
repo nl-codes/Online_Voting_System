@@ -1,7 +1,36 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import AdminSidebar from "../components/AdminSidebar";
+import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 const AdminArchivedElectionsPage = () => {
+    const [elections, setElections] = useState([]);
+    const [Loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchArchivedElections = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(
+                    `${API_BASE_URL}/get_archive_elections`
+                );
+                console.log(response);
+                if (response.status === 200) {
+                    if (response.data.success) {
+                        setElections(response.data.archivedElections);
+                    }
+                }
+                setLoading(false);
+            } catch (error) {
+                setError("Failed to fetch elections. Please try again later. ");
+                console.error("Error fetching elections: ", error);
+                setLoading(false);
+            }
+        };
+        fetchArchivedElections();
+    }, []);
+
     return (
         <div className="bg-[#29142e] min-h-screen max-w-screen flex pr-8">
             <AdminSidebar />
