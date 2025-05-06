@@ -49,6 +49,10 @@ const App = () => {
                         element={<AdminCreateElectionPage />}
                     />
                     <Route
+                        path="/sec/admin/archived/election"
+                        element={<AdminArchivedElectionsPage />}
+                    />
+                    <Route
                         path="/sec/admin/view/candidate"
                         element={<AdminViewCandidatePage />}
                     />
