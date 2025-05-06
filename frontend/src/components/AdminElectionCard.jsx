@@ -85,7 +85,24 @@ const AdminElectionCard = ({ election }) => {
         }
     };
 
-    const handleArchive = () => {};
+    const handleArchive = () => {
+        Swal.fire({
+            title: "Do you really want to archive election?",
+            text: "Archiving election will lose all votes received by candidates!",
+            icon: "warning",
+            iconColor: "#FFA500",
+            background: "#512C59",
+            color: "#ffffff",
+            showCancelButton: true,
+            confirmButtonColor: "#008000",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, archive it!",
+        }).then((result) => {
+            if (result.isConfirmed) {
+                archiveElection();
+            }
+        });
+    };
 
     return (
         <div className="election-card flex flex-col w-full max-w-3xl bg-[#29142e] text-[#f6eef8] p-6 m-4 rounded-xl border-[#f6eef8] border-4 shadow-lg shadow-[#f6eef8] hover:shadow-xl transition-all duration-300">
