@@ -17,6 +17,7 @@ import AdminViewElectionPage from "./pages/AdminViewElectionPage";
 import AdminCreateElectionPage from "./pages/AdminCreateElectionPage";
 import AdminViewCandidatePage from "./pages/AdminViewCandidatePage";
 import AdminCreateCandidatePage from "./pages/AdminCreateCandidatesPage";
+import AdminArchivedElectionsPage from "./pages/AdminArchivedElectionsPage";
 
 const App = () => {
     return (
