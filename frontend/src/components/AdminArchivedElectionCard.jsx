@@ -2,7 +2,7 @@ import React from "react";
 
 const AdminArchivedElectionCard = ({ election }) => {
     const {
-        id,
+        original_election_id,
         original_topic,
         original_description,
         original_position,
@@ -29,7 +29,7 @@ const AdminArchivedElectionCard = ({ election }) => {
             <div className="header-section flex justify-between items-start mb-6">
                 <div>
                     <h2 className="font-bold text-2xl mb-2">
-                        {id + ". " + original_topic}
+                        {original_election_id + ". " + original_topic}
                     </h2>
                     <p className="font-semibold text-lg">
                         Position :{" "}
