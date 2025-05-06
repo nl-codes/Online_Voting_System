@@ -562,6 +562,15 @@ app.get("/get_election_archive_status/:id", async (req, res) => {
     const electionId = req.params.id;
 
     try {
+        const sql = "SELECT isArchived FROM election WHERE id = ?";
+        const [result] = await pool.execute(sql, [electionId]);
+
+        if (result.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Election not found",
+            });
+        }
     } catch (error) {
         console.error("Error fetching election archive status: ", error);
         return res.status(500).json({
