@@ -44,6 +44,37 @@ const AdminArchivedElectionCard = ({ election }) => {
                     </span>
                 </div>
             </div>
+
+            {/* Description Section */}
+            <div className="description-section mb-6">
+                <h3 className="text-xl font-semibold mb-2">Description:</h3>
+                <p className="text-lg text-gray-300">{original_description}</p>
+            </div>
+
+            {/* Schedule Section */}
+            <div className="schedule-section mb-6">
+                <h3 className="text-xl font-semibold mb-2">
+                    Original Schedule:
+                </h3>
+                <div className="flex gap-16">
+                    <div>
+                        <p className="text-[#c791d4] font-semibold">
+                            Start Time:
+                        </p>
+                        <p className="text-lg text-gray-300">
+                            {original_schedule.split("|")[0]}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-[#c791d4] font-semibold">
+                            End Time:
+                        </p>
+                        <p className="text-lg text-gray-300">
+                            {original_schedule.split("|")[1]}
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };
