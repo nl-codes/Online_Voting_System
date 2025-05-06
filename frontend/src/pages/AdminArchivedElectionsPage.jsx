@@ -3,6 +3,7 @@ import AdminSidebar from "../components/AdminSidebar";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
 import LoadingDots from "../components/LoadingDots";
+import AdminArchivedElectionCard from "../components/AdminArchivedElectionCard";
 
 const AdminArchivedElectionsPage = () => {
     const [elections, setElections] = useState([]);
@@ -51,7 +52,11 @@ const AdminArchivedElectionsPage = () => {
                             No Elections Archived
                         </p>
                     ) : (
-                        <div> </div>
+                        <div>
+                            <AdminArchivedElectionCard
+                                election={elections[0]}
+                            />
+                        </div>
                     )}
                 </div>
             </div>
