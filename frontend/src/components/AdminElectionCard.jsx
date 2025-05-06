@@ -1,4 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { API_BASE_URL } from "../config/api";
+import axios from "axios";
+import Swal from "sweetalert2";
 
 const AdminElectionCard = ({ election }) => {
     const { id, topic, description, position, start_time, stop_time } =
@@ -53,7 +56,34 @@ const AdminElectionCard = ({ election }) => {
         return () => clearInterval(timer);
     }, [stop_time, start_time]);
 
-    const handleArchive = () => {};
+    const archiveElection = async () => {
+        try {
+            const response = await axios.post(
+                `${API_BASE_URL}/archive_election/`,
+                {
+                    election_id: id,
+                }
+            );
+            console.log(response);
+            if (response.status === 200) {
+                if (response.data.success) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: "Election archived successfully!",
+                    });
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: response.data.message,
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error archiving election: ", error);
+        }
+    };
 
     return (
         <div className="election-card flex flex-col w-full max-w-3xl bg-[#29142e] text-[#f6eef8] p-6 m-4 rounded-xl border-[#f6eef8] border-4 shadow-lg shadow-[#f6eef8] hover:shadow-xl transition-all duration-300">
@@ -94,9 +124,7 @@ const AdminElectionCard = ({ election }) => {
 
             {/* Archive Button */}
             <div className="archive-button mt-6 flex justify-center">
-                <button
-                    className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300"
-                    onClick={handleArchive}>
+                <button className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300">
                     Archive Election
                 </button>
             </div>
