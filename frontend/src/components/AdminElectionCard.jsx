@@ -223,16 +223,18 @@ const AdminElectionCard = ({ election }) => {
                         {isArchived == 1 ? "Archived" : "Available"}
                     </p>
                 </div>
-                <div>
+                <div className="flex gap-8">
                     <button
-                        className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300"
+                        className="bg-[#4dd0e1] text-[#f2f2f2] cursor-pointer font-bold py-2 px-4 rounded-lg 
+    shadow-md hover:bg-[#3cbecf] transition duration-30"
                         onClick={handleRestart}>
-                        Restart Election
+                        Restart
                     </button>
                     <button
-                        className="bg-[#c791d4] text-[#29142e] cursor-pointer font-bold py-2 px-4 rounded-lg hover:bg-[#a76bb5] transition duration-300"
+                        className="bg-[#f4a236] text-[#f2f2f2] cursor-pointer font-bold py-2 px-4 rounded-lg 
+    shadow-md hover:bg-[#db902f] transition duration-300"
                         onClick={handleArchive}>
-                        Archive Election
+                        Archive
                     </button>
                 </div>
             </div>
