@@ -572,6 +572,18 @@ app.get("/restart_election/:id", async (req, res) => {
                 message: "Election doesn't exist",
             });
         }
+
+        const checkArchivedSql =
+            "SELECT 1 FROM archived_elections WHERE original_election_id = ?";
+        const [resultCheckArchive] = await pool.execute(checkArchivedSql, [
+            electionId,
+        ]);
+        if (resultCheckArchive.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Eletion is not archived",
+            });
+        }
     } catch (error) {
         console.error("Error restarting election: ", error);
         return res.status(400).json({
