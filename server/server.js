@@ -562,8 +562,8 @@ app.get("/restart_election/:id", async (req, res) => {
     const electionId = req.params.id;
 
     try {
-        const checkEletionSql = "SELECT 1 FROM election WHERE id = ?";
-        const [resultCheckElection] = await pool.execute(checkEletionSql, [
+        const checkElectionSql = "SELECT 1 FROM election WHERE id = ?";
+        const [resultCheckElection] = await pool.execute(checkElectionSql, [
             electionId,
         ]);
         if (resultCheckElection.length === 0) {
@@ -581,7 +581,7 @@ app.get("/restart_election/:id", async (req, res) => {
         if (resultCheckArchive.length === 0) {
             return res.status(200).json({
                 success: false,
-                message: "Eletion is not archived",
+                message: "Election is not archived",
             });
         }
 
