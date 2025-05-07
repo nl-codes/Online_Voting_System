@@ -485,10 +485,10 @@ app.post("/archive_election", async (req, res) => {
             });
         }
 
-        if (!(now >= start && now <= stop)) {
+        if (now > stop) {
             return res.status(200).json({
                 success: false,
-                message: "Only ongoing elections can be archived",
+                message: "Only upcoming or ongoing elections can be archived",
             });
         }
         // Step 2: Get candidates and their votes
