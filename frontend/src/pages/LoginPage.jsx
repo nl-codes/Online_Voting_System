@@ -88,7 +88,13 @@ const LoginPage = () => {
                         Login
                     </button>
                 </form>
-
+                <div className="flex justify-between w-full mt-2">
+                    <Link
+                        to="/forgot-password"
+                        className="text-[#5D76EE] text-sm hover:underline">
+                        Forgot Password?
+                    </Link>
+                </div>
                 <p className="mt-4 text-[#29142e]">
                     Haven't registered yet?
                     <Link
