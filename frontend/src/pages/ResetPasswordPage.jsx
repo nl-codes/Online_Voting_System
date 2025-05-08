@@ -4,10 +4,30 @@ import { API_BASE_URL } from "../config/api";
 import axios from "axios";
 
 const ResetPasswordPage = () => {
+    const { token } = useParams();
+    const navigate = useNavigate();
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
+
+    // Verify token on page load
+    useEffect(() => {
+        const verifyToken = async () => {
+            try {
+                const response = await axios.get(
+                    `${API_BASE_URL}/verify-reset-token/${token}`
+                );
+                if (!response.data.success) {
+                    setError("Invalid or expired reset token");
+                }
+            } catch (error) {
+                console.log("error verifying token", error);
+                setError("Invalid or expired reset token");
+            }
+        };
+        verifyToken();
+    }, [token]);
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#29142e] text-[#29142e] p-4">
