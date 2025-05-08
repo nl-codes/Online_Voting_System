@@ -1,11 +1,36 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { API_BASE_URL } from "../config/api";
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsLoading(true);
+        try {
+            const response = await axios.post(
+                `${API_BASE_URL}/forogt-password}`,
+                {
+                    email: email,
+                }
+            );
+            const data = await response.json();
+            if (data.success) {
+                setMessage("Password reset link sent to your email!");
+            } else {
+                setMessage(data.error || "Email not found!");
+            }
+        } catch (error) {
+            setMessage("An error occured. Please try again later.");
+            console.log("error resetting password: ", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-[#29142e] p-4">
             <div className="rounded-3xl p-8 w-100 bg-white">
@@ -13,7 +38,9 @@ const ForgotPasswordPage = () => {
                     Forgot Password
                 </h2>
 
-                <form className="flex flex-col items-center">
+                <form
+                    className="flex flex-col items-center"
+                    onSubmit={handleSubmit}>
                     <label className="self-start text-[#29142e] font-medium">
                         Email:
                     </label>
