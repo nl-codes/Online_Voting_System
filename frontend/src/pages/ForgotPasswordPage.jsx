@@ -20,7 +20,7 @@ const ForgotPasswordPage = () => {
             );
             const data = await response.data;
             if (data.success) {
-                setMessage("Password reset link sent to your email!");
+                setMessage("success! Password reset link sent to your email!");
             } else {
                 setMessage(data.error || "Email not found!");
             }
