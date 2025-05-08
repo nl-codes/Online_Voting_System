@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { API_BASE_URL } from "../config/api";
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const ResetPasswordPage = () => {
     const { token } = useParams();
@@ -64,9 +65,25 @@ const ResetPasswordPage = () => {
             );
 
             if (response.data.success) {
-                alert("Password reset successful!");
-                navigate("/login");
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: response.data.message,
+                    background: "#512C59",
+                    color: "#ffffff",
+                }).then((result) => {
+                    if (result.isConfirmed || result.isDismissed) {
+                        navigate("/login");
+                    }
+                });
             } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: response.data.message,
+                    background: "#512C59",
+                    color: "#ffffff",
+                });
                 setError(response.data.message);
             }
         } catch (error) {
