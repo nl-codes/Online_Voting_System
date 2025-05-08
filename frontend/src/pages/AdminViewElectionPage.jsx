@@ -112,6 +112,13 @@ const AdminViewElectionPage = () => {
                                         election={election}
                                     />
                                 ))}
+                            {viewMode === "upcoming" &&
+                                upcomingElection.map((election) => (
+                                    <AdminElectionCard
+                                        key={election.id}
+                                        election={election}
+                                    />
+                                ))}
                         </div>
                     )}
                 </div>
