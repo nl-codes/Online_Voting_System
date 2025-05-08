@@ -24,10 +24,9 @@ const AdminViewElectionPage = () => {
                     `${API_BASE_URL}/get_all_elections`
                 );
                 console.log(response);
-                if (response.status === 200) {
-                    if (response.data.success) {
-                        setElections(response.data.data);
-                    }
+                if (response.status === 200 && response.data.success) {
+                    setElections(response.data.data);
+                    sortElections(response.data.data);
                 }
                 setLoading(false);
             } catch (error) {
