@@ -13,12 +13,12 @@ const ForgotPasswordPage = () => {
         setIsLoading(true);
         try {
             const response = await axios.post(
-                `${API_BASE_URL}/forogt-password}`,
+                `${API_BASE_URL}/forgot-password`,
                 {
                     email: email,
                 }
             );
-            const data = await response.json();
+            const data = await response.data;
             if (data.success) {
                 setMessage("Password reset link sent to your email!");
             } else {
