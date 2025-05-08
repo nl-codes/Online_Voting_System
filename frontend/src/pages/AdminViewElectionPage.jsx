@@ -6,6 +6,7 @@ import LoadingDots from "../components/LoadingDots";
 import AdminElectionCard from "../components/AdminElectionCard";
 
 const AdminViewElectionPage = () => {
+    const [viewMode, setViewMode] = useState("all");
     const [elections, setElections] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
