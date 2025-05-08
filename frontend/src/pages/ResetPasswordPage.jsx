@@ -29,6 +29,44 @@ const ResetPasswordPage = () => {
         verifyToken();
     }, [token]);
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+
+        if (password !== confirmPassword) {
+            setError("Passwords don't match");
+            return;
+        }
+
+        if (password.length < 6) {
+            setError("Password must be at least 6 characters long");
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await axios.post(
+                `${API_BASE_URL}/reset-password`,
+                {
+                    token,
+                    password,
+                }
+            );
+
+            if (response.data.success) {
+                alert("Password reset successful!");
+                navigate("/login");
+            } else {
+                setError(response.data.message);
+            }
+        } catch (error) {
+            console.log("error resetting password", error);
+            setError("Error resetting password. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-[#29142e] text-[#29142e] p-4">
             <div className="rounded-3xl p-8 w-96 shadow-xl bg-white">
@@ -40,7 +78,7 @@ const ResetPasswordPage = () => {
                     <p className="text-red-500 text-center mb-4">{error}</p>
                 )}
 
-                <form className="flex flex-col gap-4">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                     <div>
                         <label className="block text-[#29142e] font-medium mb-2">
                             New Password
