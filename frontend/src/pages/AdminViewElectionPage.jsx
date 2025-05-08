@@ -91,12 +91,13 @@ const AdminViewElectionPage = () => {
                         </p>
                     ) : (
                         <div className="flex flex-col gap-4 mt-8 items-center">
-                            {elections.map((election) => (
-                                <AdminElectionCard
-                                    key={election.id}
-                                    election={election}
-                                />
-                            ))}
+                            {viewMode === "all" &&
+                                elections.map((election) => (
+                                    <AdminElectionCard
+                                        key={election.id}
+                                        election={election}
+                                    />
+                                ))}
                         </div>
                     )}
                 </div>
