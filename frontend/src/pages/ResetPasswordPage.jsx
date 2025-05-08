@@ -29,17 +29,27 @@ const ResetPasswordPage = () => {
         verifyToken();
     }, [token]);
 
+    const validatePassword = () => {
+        const passwordPattern =
+            /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!password.match(passwordPattern)) {
+            return "Password must be at least 8 characters long, contain 1 capital letter, 1 number, and 1 special character";
+        }
+        return "";
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
 
-        if (password !== confirmPassword) {
-            setError("Passwords don't match");
+        const passwordError = validatePassword();
+        if (passwordError) {
+            setError(passwordError);
             return;
         }
 
-        if (password.length < 6) {
-            setError("Password must be at least 6 characters long");
+        if (password !== confirmPassword) {
+            setError("Passwords don't match");
             return;
         }
 
