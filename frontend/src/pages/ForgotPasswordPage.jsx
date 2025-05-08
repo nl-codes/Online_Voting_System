@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import Swal from "sweetalert2";
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState("");
@@ -21,6 +22,13 @@ const ForgotPasswordPage = () => {
             const data = await response.data;
             if (data.success) {
                 setMessage("success! Password reset link sent to your email!");
+                Swal.fire({
+                    icon: "success",
+                    title: "Success",
+                    text: data.message,
+                    background: "#512C59",
+                    color: "#ffffff",
+                });
             } else {
                 setMessage(data.error || "Email not found!");
             }
