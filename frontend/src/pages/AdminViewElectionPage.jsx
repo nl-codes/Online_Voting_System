@@ -68,6 +68,16 @@ const AdminViewElectionPage = () => {
                 <p className="text-center text-2xl font-bold">
                     All Elections List
                 </p>
+                <select
+                    value={viewMode}
+                    onChange={(e) => setViewMode(e.target.value)}
+                    className="bg-[#512C59] text-white px-4 py-2 mt-8 rounded-lg border-2 border-[#c791d4] focus:outline-none focus:ring-2 focus:ring-[#c791d4] cursor-pointer hover:bg-[#613869] transition-colors duration-200">
+                    <option value="all">All Elections</option>
+                    <option value="finished">Finished Elections</option>
+                    <option value="ongoing">Ongoing Elections</option>
+                    <option value="upcoming">Upcoming Elections</option>
+                </select>
+
                 <div>
                     {loading ? (
                         <LoadingDots />
