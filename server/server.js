@@ -266,6 +266,60 @@ app.get("/verify-reset-token/:token", async (req, res) => {
     }
 });
 
+// Reset Password
+app.post("/reset-password", async (req, res) => {
+    const { token, password } = req.body;
+
+    if (!token || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing required Fields",
+        });
+    }
+    try {
+        const tokenSql =
+            "SELECT * FROM reset_password WHERE reset_token = ? AND reset_token_expiry > NOW()";
+
+        const [tokenResult] = await pool.execute(tokenSql, [token]);
+
+        if (tokenResult.length == 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Invalid or expired reset token",
+            });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Update password
+        const updateSql =
+            "UPDATE user_detail SET password_hash = ? WHERE id = ?";
+
+        const updateValues = [hashedPassword, tokenResult[0].user_id];
+
+        await pool.execute(updateSql, updateValues);
+
+        // Delete used token
+        const deleteSql = "DELETE FROM reset_password WHERE reset_token = ?";
+
+        const deleteValues = [token];
+
+        await pool.execute(deleteSql, deleteValues);
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset successful",
+        });
+    } catch (error) {
+        console.error("Erroring resetting password: ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+    }
+});
+
 // Profile Fetch
 app.get("/user_profile/:id", async (req, res) => {
     const sql =
