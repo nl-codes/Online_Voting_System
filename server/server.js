@@ -240,8 +240,8 @@ app.post("/forgot-password", async (req, res) => {
 
 // Verify reset Token
 app.get("/verify-reset-token/:token", async (req, res) => {
+    const token = req.params.token;
     try {
-        const { token } = req.params.token;
         const sql =
             "SELECT * FROM reset_password WHERE reset_token = ? AND reset_token_expiry > NOW()";
 
