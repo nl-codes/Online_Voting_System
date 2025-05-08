@@ -238,6 +238,34 @@ app.post("/forgot-password", async (req, res) => {
     }
 });
 
+// Verify reset Token
+app.get("/verify-reset-token/:token", async (req, res) => {
+    try {
+        const { token } = req.params.token;
+        const sql =
+            "SELECT * FROM reset_password WHERE reset_token = ? AND reset_token_expiry > NOW()";
+
+        const [result] = await pool.execute(sql, [token]);
+
+        if (result.length == 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Invalid or expired reset token",
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Valid token",
+        });
+    } catch (error) {
+        console.error("Error verifying password : ", error);
+        return res.status(500).json({
+            success: false,
+            message: "Server error",
+        });
+    }
+});
+
 // Profile Fetch
 app.get("/user_profile/:id", async (req, res) => {
     const sql =
