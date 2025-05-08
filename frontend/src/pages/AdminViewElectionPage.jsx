@@ -98,6 +98,13 @@ const AdminViewElectionPage = () => {
                                         election={election}
                                     />
                                 ))}
+                            {viewMode === "finished" &&
+                                finishedElection.map((election) => (
+                                    <AdminElectionCard
+                                        key={election.id}
+                                        election={election}
+                                    />
+                                ))}
                         </div>
                     )}
                 </div>
