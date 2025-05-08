@@ -36,6 +36,30 @@ const AdminViewElectionPage = () => {
                 setLoading(false);
             }
         };
+        const sortElections = (electionsList) => {
+            const now = new Date().getTime();
+
+            const finished = [];
+            const ongoing = [];
+            const upcoming = [];
+
+            electionsList.forEach((election) => {
+                const startTime = new Date(election.start_time).getTime();
+                const stopTime = new Date(election.stop_time).getTime();
+
+                if (now > stopTime) {
+                    finished.push(election);
+                } else if (now > startTime) {
+                    ongoing.push(election);
+                } else {
+                    upcoming.push(election);
+                }
+            });
+
+            setFinishedElections(finished);
+            setOngoingElections(ongoing);
+            setUpcomingElections(upcoming);
+        };
         fetchElections();
     }, []);
     return (
