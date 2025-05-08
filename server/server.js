@@ -10,6 +10,8 @@ import {
     uploadCitizenship,
     uploadUserProfile,
 } from "./middleware/multerConfig.js";
+import transporter from "./config/nodemailerConfig.js";
+import crypto from "crypto";
 
 import dotenv from "dotenv";
 
@@ -155,6 +157,83 @@ app.get("/user_exists/:email", async (req, res) => {
         return res.status(500).json({
             success: false,
             error: "Database error: " + err.message,
+        });
+    }
+});
+
+// Forgot Password
+app.post("/forgot-password", async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing Email field",
+        });
+    }
+    try {
+        const getIdSql = "SELECT id FROM user_detail WHERE email = ?";
+
+        const [user] = await pool.execute(getIdSql, [email]);
+
+        if (user.length == 0) {
+            return res.status(200).json({
+                success: false,
+                error: "No user found with this email",
+            });
+        }
+
+        const userId = user[0].id;
+
+        // Generte reset token
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour validity
+
+        // Save reset token in database
+        await pool.execute(
+            "INSERT INTO reset_password (user_id, reset_token, reset_token_expiry) VALUES (?, ?, ?)",
+            [userId, resetToken, resetTokenExpiry]
+        );
+        // Create reset URL
+        const resetUrl = `http://localhost:3001/reset-password/${resetToken}`;
+
+        // Email content using your existing style
+        const mailOptions = {
+            from: "noreply@ovs.com",
+            to: email,
+            subject: "Password Reset Request",
+            html: `
+                <div style="background-color: #f6eef8; padding: 20px; border-radius: 10px;">
+                <h1 style="color: #29142e; text-align: center;">Password Reset Request</h1>
+                <p style="color: #512C59;">You requested a password reset for your OVS account.</p>
+                <div style="text-align: center; margin: 20px 0;">
+                <a href="${resetUrl}" 
+                    style="background-color: #564181; 
+                    color: white; 
+                    padding: 10px 20px; 
+                    text-decoration: none; 
+                    border-radius: 20px;
+                    display: inline-block;">
+                    Reset Password
+                </a>
+            </div>
+            <p style="color: #512C59;">This link is valid for 1 hour only.</p>
+            <p style="color: #512C59;">If you didn't request this, please ignore this email.</p>
+            </div>
+            `,
+        };
+
+        // Send email
+        await transporter.sendMail(mailOptions);
+
+        res.json({
+            success: true,
+            message: "Password reset link sent to email",
+        });
+    } catch (error) {
+        console.error("Error in forgot password:", error);
+        res.status(500).json({
+            success: false,
+            error: "Internal server error",
         });
     }
 });
