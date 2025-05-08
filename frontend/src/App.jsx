@@ -19,6 +19,7 @@ import AdminViewCandidatePage from "./pages/AdminViewCandidatePage";
 import AdminCreateCandidatePage from "./pages/AdminCreateCandidatesPage";
 import AdminArchivedElectionsPage from "./pages/AdminArchivedElectionsPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 const App = () => {
     return (
@@ -35,6 +36,10 @@ const App = () => {
                     <Route
                         path="/forgot-password"
                         element={<ForgotPasswordPage />}
+                    />
+                    <Route
+                        path="/reset-password/:token"
+                        element={<ResetPasswordPage />}
                     />
                     <Route path="/profile" element={<UserProfilePage />} />
                     <Route
