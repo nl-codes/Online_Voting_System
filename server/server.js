@@ -449,6 +449,107 @@ app.get("/get_future_elections", async (req, res) => {
     }
 });
 
+app.get("/get_only_election_detail/:id", async (req, res) => {
+    const electionId = req.params.id;
+
+    if (!electionId) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing Election ID",
+        });
+    }
+
+    const getSql = "SELECT * FROM election WHERE id = ?";
+
+    const [resultGetSql] = await pool.execute(getSql, [electionId]);
+    if (resultGetSql.length == 0) {
+        return res.status(200).json({
+            success: false,
+            message: `No election found with id ${electionId}`,
+        });
+    }
+
+    return res.status(200).json({
+        success: true,
+        electionData: resultGetSql[0],
+    });
+});
+
+app.put("/edit_election/:id", async (req, res) => {
+    const electionId = req.params.id;
+
+    const { topic, description, position, start_time, stop_time } = req.body;
+
+    if (!electionId) {
+        return res.status(400).json({
+            success: false,
+            message: "Election ID is required",
+        });
+    }
+
+    if (!topic || !description || !position || !start_time || !stop_time) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing Election data to edit",
+        });
+    }
+
+    // Check if stop_time is later than start_time
+    const startDate = new Date(start_time);
+    const stopDate = new Date(stop_time);
+
+    if (stopDate <= startDate) {
+        return res.status(200).json({
+            success: false,
+            message: "Stop time must be later than start time",
+        });
+    }
+    try {
+        const sql = "SELECT isArchived FROM election WHERE id = ?";
+
+        const [resultElection] = await pool.execute(sql, [electionId]);
+
+        if (resultElection.length == 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No election with id " + electionId,
+            });
+        }
+
+        if (!resultElection[0].isArchived) {
+            return res.status(200).json({
+                success: false,
+                message: "Can't edit unarchived election",
+            });
+        }
+
+        const editSql =
+            "UPDATE election SET topic = ?, description = ?, position = ?, start_time = ?, stop_time = ?, isArchived = TRUE WHERE id = ?";
+
+        const editValues = [
+            topic,
+            description,
+            position,
+            start_time,
+            stop_time,
+            electionId,
+        ];
+
+        await pool.execute(editSql, editValues);
+
+        return res.status(200).json({
+            success: true,
+            message: "Election edited successfully",
+        });
+    } catch (error) {
+        console.error("Error editing election: ", error);
+        return res.status(500).json({
+            status: false,
+            message: "Error editing election",
+        });
+    }
+});
+
 app.post("/archive_election", async (req, res) => {
     const { election_id } = req.body;
 
@@ -661,6 +762,52 @@ app.get("/restart_election/:id", async (req, res) => {
         return res.status(400).json({
             success: false,
             message: "Error restarting election",
+        });
+    }
+});
+
+app.delete("/delete_election/:id", async (req, res) => {
+    const electionId = req.params.id;
+
+    if (!electionId) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing Election Id",
+        });
+    }
+
+    try {
+        const sql = "SELECT isArchived FROM election WHERE id = ?";
+
+        const [resultElection] = await pool.execute(sql, [electionId]);
+
+        if (resultElection.length == 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No election with id " + electionId,
+            });
+        }
+
+        if (!resultElection[0].isArchived) {
+            return res.status(200).json({
+                success: false,
+                message: "Can't delete unarchived election",
+            });
+        }
+
+        const deleteSql = "DELETE FROM election WHERE id = ?";
+
+        await pool.execute(deleteSql, [electionId]);
+
+        return res.status(200).json({
+            success: true,
+            message: "Election deleted successfully",
+        });
+    } catch (error) {
+        console.error("Error deleting election: ", error);
+        return res.status(500).json({
+            status: false,
+            message: "Error deleting election",
         });
     }
 });
