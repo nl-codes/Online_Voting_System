@@ -18,6 +18,7 @@ import AdminCreateElectionPage from "./pages/AdminCreateElectionPage";
 import AdminViewCandidatePage from "./pages/AdminViewCandidatePage";
 import AdminCreateCandidatePage from "./pages/AdminCreateCandidatesPage";
 import AdminArchivedElectionsPage from "./pages/AdminArchivedElectionsPage";
+import AdminEditElectionPage from "./pages/AdminEditElectionPage";
 
 const App = () => {
     return (
@@ -47,6 +48,10 @@ const App = () => {
                     <Route
                         path="/sec/admin/create/election"
                         element={<AdminCreateElectionPage />}
+                    />
+                    <Route
+                        path="/sec/admin/edit/election/:id"
+                        element={<AdminEditElectionPage />}
                     />
                     <Route
                         path="/sec/admin/archived/election"
