@@ -6,7 +6,13 @@ import LoadingDots from "../components/LoadingDots";
 import AdminElectionCard from "../components/AdminElectionCard";
 
 const AdminViewElectionPage = () => {
+    const [viewMode, setViewMode] = useState("all");
+
     const [elections, setElections] = useState([]);
+    const [finishedElection, setFinishedElections] = useState([]);
+    const [ongoingElection, setOngoingElections] = useState([]);
+    const [upcomingElection, setUpcomingElections] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -18,10 +24,9 @@ const AdminViewElectionPage = () => {
                     `${API_BASE_URL}/get_all_elections`
                 );
                 console.log(response);
-                if (response.status === 200) {
-                    if (response.data.success) {
-                        setElections(response.data.data);
-                    }
+                if (response.status === 200 && response.data.success) {
+                    setElections(response.data.data);
+                    sortElections(response.data.data);
                 }
                 setLoading(false);
             } catch (error) {
@@ -29,6 +34,30 @@ const AdminViewElectionPage = () => {
                 console.error("Error fetching elections:", error);
                 setLoading(false);
             }
+        };
+        const sortElections = (electionsList) => {
+            const now = new Date().getTime();
+
+            const finished = [];
+            const ongoing = [];
+            const upcoming = [];
+
+            electionsList.forEach((election) => {
+                const startTime = new Date(election.start_time).getTime();
+                const stopTime = new Date(election.stop_time).getTime();
+
+                if (now > stopTime) {
+                    finished.push(election);
+                } else if (now > startTime) {
+                    ongoing.push(election);
+                } else {
+                    upcoming.push(election);
+                }
+            });
+
+            setFinishedElections(finished);
+            setOngoingElections(ongoing);
+            setUpcomingElections(upcoming);
         };
         fetchElections();
     }, []);
@@ -39,6 +68,16 @@ const AdminViewElectionPage = () => {
                 <p className="text-center text-2xl font-bold">
                     All Elections List
                 </p>
+                <select
+                    value={viewMode}
+                    onChange={(e) => setViewMode(e.target.value)}
+                    className="bg-[#512C59] text-white px-4 py-2 mt-8 rounded-lg border-2 border-[#c791d4] focus:outline-none focus:ring-2 focus:ring-[#c791d4] cursor-pointer hover:bg-[#613869] transition-colors duration-200">
+                    <option value="all">All Elections</option>
+                    <option value="finished">Finished Elections</option>
+                    <option value="ongoing">Ongoing Elections</option>
+                    <option value="upcoming">Upcoming Elections</option>
+                </select>
+
                 <div>
                     {loading ? (
                         <LoadingDots />
@@ -52,12 +91,34 @@ const AdminViewElectionPage = () => {
                         </p>
                     ) : (
                         <div className="flex flex-col gap-4 mt-8 items-center">
-                            {elections.map((election) => (
-                                <AdminElectionCard
-                                    key={election.id}
-                                    election={election}
-                                />
-                            ))}
+                            {viewMode === "all" &&
+                                elections.map((election) => (
+                                    <AdminElectionCard
+                                        key={election.id}
+                                        election={election}
+                                    />
+                                ))}
+                            {viewMode === "finished" &&
+                                finishedElection.map((election) => (
+                                    <AdminElectionCard
+                                        key={election.id}
+                                        election={election}
+                                    />
+                                ))}
+                            {viewMode === "ongoing" &&
+                                ongoingElection.map((election) => (
+                                    <AdminElectionCard
+                                        key={election.id}
+                                        election={election}
+                                    />
+                                ))}
+                            {viewMode === "upcoming" &&
+                                upcomingElection.map((election) => (
+                                    <AdminElectionCard
+                                        key={election.id}
+                                        election={election}
+                                    />
+                                ))}
                         </div>
                     )}
                 </div>
