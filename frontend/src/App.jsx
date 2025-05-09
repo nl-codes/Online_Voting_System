@@ -18,7 +18,10 @@ import AdminCreateElectionPage from "./pages/AdminCreateElectionPage";
 import AdminViewCandidatePage from "./pages/AdminViewCandidatePage";
 import AdminCreateCandidatePage from "./pages/AdminCreateCandidatesPage";
 import AdminArchivedElectionsPage from "./pages/AdminArchivedElectionsPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminEditElectionPage from "./pages/AdminEditElectionPage";
+
 
 const App = () => {
     return (
@@ -32,6 +35,14 @@ const App = () => {
                     />
                     <Route path="/home" element={<UserDashboardPage />} />
                     <Route path="/login" element={<LoginPage />} />
+                    <Route
+                        path="/forgot-password"
+                        element={<ForgotPasswordPage />}
+                    />
+                    <Route
+                        path="/reset-password/:token"
+                        element={<ResetPasswordPage />}
+                    />
                     <Route path="/profile" element={<UserProfilePage />} />
                     <Route
                         path="/profile/edit"
