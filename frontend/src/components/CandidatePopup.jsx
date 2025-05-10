@@ -17,7 +17,7 @@ const CandidatePopup = ({ image_url, name, saying, isWinner = false }) => {
                         : { width: 100, height: 100 }
                 }
             />
-            <span className={isWinner ? "font-bold text-3xl" : "text-2xl"}>
+            <span className={isWinner ? "font-bold text-3xl" : "text-xl"}>
                 {name}
             </span>
         </div>
