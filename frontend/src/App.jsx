@@ -21,7 +21,7 @@ import AdminArchivedElectionsPage from "./pages/AdminArchivedElectionsPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminEditElectionPage from "./pages/AdminEditElectionPage";
-
+import PastElectionsResultPage from "./pages/PastElectionsResultPage";
 
 const App = () => {
     return (
@@ -91,6 +91,10 @@ const App = () => {
                     <Route
                         path="/voter_card"
                         element={<VoterCardPortalPage />}
+                    />
+                    <Route
+                        path="/past-elections"
+                        element={<PastElectionsResultPage />}
                     />
 
                     <Route path="/signup" element={<SignupPage />} />
