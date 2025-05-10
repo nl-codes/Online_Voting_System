@@ -31,7 +31,7 @@ const PastElectionsResultPage = () => {
         fetchFinishedElections();
     }, []);
     return (
-        <div className="w-screen min-h-screen bg-[#29142e] text-white font-bold p-8 flex flex-col">
+        <div className="w-screen min-h-screen bg-[#29142e] text-white p-8 flex flex-col">
             {/* Header */}
             <div className="relative flex items-center">
                 <div className="absolute left-0">
