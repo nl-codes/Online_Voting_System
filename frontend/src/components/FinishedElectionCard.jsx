@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import ProfileDisplay from "./ProfileDisplay";
 
 const FinishedElectionCard = ({ electionDetails }) => {
@@ -68,7 +67,12 @@ const FinishedElectionCard = ({ electionDetails }) => {
                     </div>
                 </div>
                 {/* Winner */}
-                <div></div>
+                <div className="flex flex-col">
+                    <span>Winner</span>
+                    <ProfileDisplay image_url={photos[winnerIndex]} />
+                    <span>{names[winnerIndex]}</span>
+                    <span>{`Votes Received: ${votes[winnerIndex]}`}</span>
+                </div>
             </div>
             {/* Candidates */}
             <div></div>
