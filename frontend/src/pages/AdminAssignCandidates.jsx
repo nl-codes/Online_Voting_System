@@ -32,7 +32,7 @@ const AdminAssignCandidates = () => {
                     `${API_BASE_URL}/get_candidates_all`
                 );
                 if (candidateRes.data?.success) {
-                    setCandidates(candidateRes.data.data || []);
+                    setCandidates(candidateRes.data.candidateList || []);
                 } else {
                     console.error(
                         "Failed to fetch candidates:",
