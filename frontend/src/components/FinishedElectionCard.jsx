@@ -17,6 +17,19 @@ const FinishedElectionCard = ({ electionDetails }) => {
     const sayings = candidate_saying_list.split("|");
     const votes = candidate_vote_list.split("|");
 
+    const formatDateTime = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+        });
+    };
+
     return (
         <div className="election-card flex flex-col w-200 justify-center  bg-[#29142e] text-white p-4 m-4 rounded-xl border-white border-4 shadow-lg shadow-white">
             {/* Election Details */}
@@ -44,7 +57,9 @@ const FinishedElectionCard = ({ electionDetails }) => {
                         <span className="text-2xl font-semibold text-[#c791d4]">
                             Timeline
                         </span>
-                        <span className="text-gray-200">{`${start_time} - ${stop_time}`}</span>
+                        <span className="text-gray-200">{`${formatDateTime(
+                            start_time
+                        )} - ${formatDateTime(stop_time)}`}</span>
                     </div>
                 </div>
                 {/* Winner */}
