@@ -1104,7 +1104,7 @@ app.post("/get_candidates_assigned", async (req, res) => {
         }
 
         const candidateSql =
-            "SELECT GROUP_CONCAT(ec.candidate_id SEPARATOR '|') AS candidate_id_list, GROUP_CONCAT(c.full_name SEPARATOR '|') AS candidate_full_name, GROUP_CONCAT(c.saying SEPARATOR '|') AS candidate_saying, GROUP_CONCAT(c.photo_url SEPARATOR '|') AS candidate_photo_url FROM election_candidate ec JOIN candidate c ON ec.candidate_id = c.id WHERE ec.election_id = 6 GROUP BY ec.election_id";
+            "SELECT GROUP_CONCAT(ec.candidate_id SEPARATOR '|') AS candidate_id_list, GROUP_CONCAT(c.full_name SEPARATOR '|') AS candidate_full_name, GROUP_CONCAT(c.saying SEPARATOR '|') AS candidate_saying, GROUP_CONCAT(c.photo_url SEPARATOR '|') AS candidate_photo_url FROM election_candidate ec JOIN candidate c ON ec.candidate_id = c.id WHERE ec.election_id = ? GROUP BY ec.election_id";
         const [candidateResult] = await pool.execute(candidateSql, [
             election_id,
         ]);
@@ -1118,7 +1118,7 @@ app.post("/get_candidates_assigned", async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            data: candidateResult,
+            data: candidateResult[0],
             message: "Candidates retrieved successfully",
         });
     } catch (err) {
