@@ -56,11 +56,19 @@ const UserDashboardPage = () => {
         <div className="bg-[#29142e] h-screen max-w-screen">
             {/* Header */}
             <div className="text-white text-2xl flex items-center justify-between px-20 pt-4">
-                <button
-                    className="text-white bg-[#ab63bb] px-4 py-2 rounded-md font-bold cursor-pointer transition-all duration-150 ease-in-out hover:scale-110 hover:shadow-[0_0_10px_#ab63bb]"
-                    onClick={handleVoterPortal}>
-                    VOTER PORTAL
-                </button>
+                <div className="flex flex-col gap-4 justify-center">
+                    <button
+                        className="text-white bg-[#ab63bb] px-4 py-2 rounded-md font-bold cursor-pointer transition-all duration-150 ease-in-out hover:scale-110 hover:shadow-[0_0_10px_#ab63bb]"
+                        onClick={handleVoterPortal}>
+                        VOTER PORTAL
+                    </button>
+                    <button
+                        className="text-white bg-[#ab63bb] px-4 py-2 rounded-md font-bold cursor-pointer transition-all duration-150 ease-in-out hover:scale-110 hover:shadow-[0_0_10px_#ab63bb]"
+                        onClick={handleVoterPortal}>
+                        ELECTIONS RESULT
+                    </button>
+                </div>
+
                 <p className="text-3xl font-bold">ONLINE VOTING SYSTEM</p>
                 <div className="flex items-center gap-5">
                     <div
