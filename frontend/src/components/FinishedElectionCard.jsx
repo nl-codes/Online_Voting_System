@@ -1,4 +1,4 @@
-import ProfileDisplay from "./ProfileDisplay";
+import CandidatePopup from "./CandidatePopup";
 
 const FinishedElectionCard = ({ electionDetails }) => {
     const {
@@ -67,18 +67,13 @@ const FinishedElectionCard = ({ electionDetails }) => {
                     </div>
                 </div>
                 {/* Winner */}
-                <div className="flex flex-col items-center">
-                    <span className="text-3xl font-bold text-[#c791d4] drop-shadow-2xl  shadow-amber-200 bg-none">
-                        Winner
-                    </span>
-                    <ProfileDisplay
+                <div className="flex flex-col items-center justify-center gap-4">
+                    <CandidatePopup
                         image_url={photos[winnerIndex]}
-                        sizes={{ width: 180, height: 180 }}
+                        name={names[winnerIndex]}
+                        isWinner={true}
                     />
-                    <span className="font-bold text-3xl ">
-                        {names[winnerIndex]}
-                    </span>
-                    <span>{`Votes Received: ${votes[winnerIndex]}`}</span>
+                    <span className="text-xl">{`Votes Received: ${votes[winnerIndex]}`}</span>
                 </div>
             </div>
             {/* Candidates */}
