@@ -426,6 +426,12 @@ const AdminElectionCard = ({ election }) => {
                         </button>
                     </div>
                 </div>
+                {/* See Assigned Candidates Section */}
+                <div className=" w-full flex items-center justify-center text-center">
+                    <span className="bg-[#512c59] px-4 py-2 text-xl font-semibold rounded-xl cursor-pointer hover:bg-[#8f559cf8]">
+                        See Assignned Candidates
+                    </span>
+                </div>
             </div>
             <div
                 className="bg-[#e57373] text-[#f2f2f2] cursor-pointer font-bold py-2 px-4 rounded-lg shadow-md hover:bg-[#d65c5c] transition duration-300"
