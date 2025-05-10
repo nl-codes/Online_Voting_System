@@ -31,7 +31,7 @@ const PastElectionsResultPage = () => {
         fetchFinishedElections();
     }, []);
     return (
-        <div className="w-screen h-screen bg-[#29142e] text-white font-bold p-8">
+        <div className="w-screen min-h-screen bg-[#29142e] text-white font-bold p-8 flex flex-col">
             {/* Header */}
             <div className="relative flex items-center">
                 <div className="absolute left-0">
@@ -42,7 +42,7 @@ const PastElectionsResultPage = () => {
                 </p>
             </div>
             {/* Content - Cards List */}
-            <div>
+            <div className=" flex flex-col items-center justify-center gap-8 mt-8">
                 {loading ? (
                     <LoadingDots />
                 ) : error ? (
