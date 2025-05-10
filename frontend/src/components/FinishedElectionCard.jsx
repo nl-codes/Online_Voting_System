@@ -73,6 +73,7 @@ const FinishedElectionCard = ({ electionDetails }) => {
                         name={names[winnerIndex]}
                         saying={sayings[winnerIndex]}
                         isWinner={true}
+                        winnerVotes={votes[winnerIndex]}
                     />
                     <span className="text-xl">{`Votes Received: ${votes[winnerIndex]}`}</span>
                 </div>
@@ -96,6 +97,7 @@ const FinishedElectionCard = ({ electionDetails }) => {
                                     image_url={photos[index]}
                                     name={name}
                                     saying={sayings[index]}
+                                    votes_received={votes[index]}
                                     isWinner={false}
                                 />
                             </div>
