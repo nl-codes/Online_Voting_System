@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { API_BASE_URL } from "../config/api";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
-const AdminElectionCard = ({ election, candidates }) => {
+const AdminElectionCard = ({ election }) => {
     const {
         id,
         topic,
@@ -16,6 +16,9 @@ const AdminElectionCard = ({ election, candidates }) => {
     } = election;
 
     const navigate = useNavigate();
+    const [CandidateNames, setCandidateNames] = useState([]);
+    const [CandidatePhotos, setCandidatePhotos] = useState([]);
+    const [CandidateSayings, setCandidateSayings] = useState([]);
     const [timeRemaining, setTimeRemaining] = useState("");
 
     // Format dates for display
@@ -65,6 +68,81 @@ const AdminElectionCard = ({ election, candidates }) => {
         // Cleanup interval on unmount
         return () => clearInterval(timer);
     }, [stop_time, start_time]);
+
+    useEffect(() => {
+        const fetchAssignedCandidate = async () => {
+            try {
+                const response = await axios.post(
+                    `${API_BASE_URL}/get_candidates_assigned`,
+                    {
+                        election_id: id,
+                    }
+                );
+
+                if (response.data.success) {
+                    const data = response.data.data;
+                    console.log(data);
+                    // Split the concatenated strings into arrays
+                    setCandidateNames(
+                        data.candidate_full_name?.split("|") || []
+                    );
+                    setCandidatePhotos(
+                        data.candidate_photo_url?.split("|") || []
+                    );
+                    setCandidateSayings(
+                        data.candidate_saying?.split("|") || []
+                    );
+                }
+            } catch (error) {
+                console.error("Error fetching assigned candidates:", error);
+            }
+        };
+        fetchAssignedCandidate();
+    }, [id]); // Add dependency array with id
+
+    const showAssignedCandidates = () => {
+        if (CandidateNames.length === 0) {
+            Swal.fire({
+                icon: "info",
+                title: "No Candidates",
+                text: "No candidates have been assigned to this election yet.",
+                background: "#512C59",
+                color: "#ffffff",
+            });
+            return;
+        }
+
+        const candidatesHtml = CandidateNames.map(
+            (name, index) => `
+        <div class="flex items-center gap-4 mb-4 p-4 bg-[#29142e] rounded-lg">
+            <img src="${CandidatePhotos[index]}" 
+                 alt="${name}" 
+                 class="w-16 h-16 rounded-full object-cover"
+            />
+            <div>
+                <h3 class="text-xl font-bold">${name}</h3>
+                <p class="text-gray-300 italic">"${CandidateSayings[index]}"</p>
+            </div>
+        </div>
+    `
+        ).join("");
+
+        Swal.fire({
+            title: "Assigned Candidates",
+            html: `
+            <div class="flex flex-col gap-4">
+                ${candidatesHtml}
+            </div>
+        `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            background: "#512C59",
+            color: "#ffffff",
+            customClass: {
+                popup: "rounded-3xl border-4 border-[#c791d4]",
+            },
+        });
+    };
 
     const archiveElection = async () => {
         try {
@@ -428,7 +506,9 @@ const AdminElectionCard = ({ election, candidates }) => {
                 </div>
                 {/* See Assigned Candidates Section */}
                 <div className=" w-full flex items-center justify-center text-center">
-                    <span className="bg-[#512c59] px-4 py-2 text-xl font-semibold rounded-xl cursor-pointer hover:bg-[#8f559cf8]">
+                    <span
+                        className="bg-[#512c59] px-4 py-2 text-xl font-semibold rounded-xl cursor-pointer hover:bg-[#8f559cf8]"
+                        onClick={showAssignedCandidates}>
                         See Assignned Candidates
                     </span>
                 </div>
