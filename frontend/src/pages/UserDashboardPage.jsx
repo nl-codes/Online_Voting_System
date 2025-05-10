@@ -48,6 +48,10 @@ const UserDashboardPage = () => {
         navigate(`/voter_card`);
     };
 
+    const handleElectionsResult = () => {
+        navigate("/past-elections");
+    };
+
     const handleProfileClick = () => {
         navigate("/profile");
     };
@@ -64,7 +68,7 @@ const UserDashboardPage = () => {
                     </button>
                     <button
                         className="text-white bg-[#ab63bb] px-4 py-2 rounded-md font-bold cursor-pointer transition-all duration-150 ease-in-out hover:scale-110 hover:shadow-[0_0_10px_#ab63bb]"
-                        onClick={handleVoterPortal}>
+                        onClick={handleElectionsResult}>
                         ELECTIONS RESULT
                     </button>
                 </div>
