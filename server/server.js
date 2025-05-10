@@ -495,12 +495,43 @@ app.get("/view_ongoing_election_brief", async (req, res) => {
         FROM election_candidate ec 
         JOIN election e ON ec.election_id = e.id 
         JOIN candidate c ON ec.candidate_id = c.id 
-        WHERE e.stop_time > NOW() 
+        WHERE e.stop_time > NOW()  AND NOW() > e.start_time AND e.isArchived = 0
         GROUP BY e.id
     `;
 
     try {
         const [result] = await pool.execute(sql);
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        console.error("Error fetching elections:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching elections",
+            error: err.message,
+        });
+    }
+});
+
+app.get("/finished_election_details", async (req, res) => {
+    const sql = `
+        SELECT e.id, e.topic, e.description, e.start_time, e.stop_time, e.position, GROUP_CONCAT(c.photo_url SEPARATOR '|') AS candidate_photo_list,
+        GROUP_CONCAT(c.full_name SEPARATOR '|') AS candidate_name_list, 
+        GROUP_CONCAT(c.saying SEPARATOR '|') AS candidate_saying_list, 
+        GROUP_CONCAT(ec.votes SEPARATOR '|') AS candidate_vote_list FROM election_candidate ec JOIN election e ON ec.election_id = e.id JOIN candidate c ON ec.candidate_id = c.id WHERE NOW() > e.stop_time GROUP BY e.id;
+    `;
+
+    try {
+        const [result] = await pool.execute(sql);
+
+        if (result.length == 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No finished elections found.",
+            });
+        }
         return res.status(200).json({
             success: true,
             data: result,
