@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import BackButton from "../components/BackButton";
 import axios from "axios";
 import { API_BASE_URL } from "../config/api";
+import LoadingDots from "../components/LoadingDots";
+import FinishedElectionCard from "../components/FinishedElectionCard";
 
 const PastElectionsResultPage = () => {
     const [finishedElections, setFinishedElections] = useState([]);
@@ -29,7 +31,7 @@ const PastElectionsResultPage = () => {
         fetchFinishedElections();
     }, []);
     return (
-        <div className="w-screen h-screen bg-[#29142e] text-white p-8">
+        <div className="w-screen h-screen bg-[#29142e] text-white font-bold p-8">
             {/* Header */}
             <div className="relative flex items-center">
                 <div className="absolute left-0">
@@ -38,6 +40,23 @@ const PastElectionsResultPage = () => {
                 <p className="w-full text-center text-4xl font-bold">
                     Results of Past{" "}
                 </p>
+            </div>
+            {/* Content - Cards List */}
+            <div>
+                {loading ? (
+                    <LoadingDots />
+                ) : error ? (
+                    <p className="text-red-500">{error}</p>
+                ) : finishedElections.length == 0 ? (
+                    <p className="text-2xl">No finished Elections</p>
+                ) : (
+                    finishedElections.map((election) => (
+                        <FinishedElectionCard
+                            key={election.id}
+                            electionDetails={election}
+                        />
+                    ))
+                )}
             </div>
         </div>
     );
