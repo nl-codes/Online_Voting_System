@@ -77,8 +77,32 @@ const FinishedElectionCard = ({ electionDetails }) => {
                     <span className="text-xl">{`Votes Received: ${votes[winnerIndex]}`}</span>
                 </div>
             </div>
+            <div className="w-full h-[1px] bg-gray-300 my-4"></div>
             {/* Candidates */}
-            <div></div>
+            <div className="flex flex-col gap-4">
+                <span className="text-2xl font-semibold text-[#c791d4]">
+                    Candidates
+                </span>
+                <div className="flex justify-around">
+                    {names.map((name, index) => {
+                        // Skip the winner
+                        if (index === winnerIndex) return null;
+
+                        return (
+                            <div
+                                key={index}
+                                className="flex items-center gap-2">
+                                <CandidatePopup
+                                    image_url={photos[index]}
+                                    name={name}
+                                    saying={sayings[index]}
+                                    isWinner={false}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
         </div>
     );
 };
