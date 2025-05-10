@@ -71,6 +71,7 @@ const FinishedElectionCard = ({ electionDetails }) => {
                     <CandidatePopup
                         image_url={photos[winnerIndex]}
                         name={names[winnerIndex]}
+                        saying={sayings[winnerIndex]}
                         isWinner={true}
                     />
                     <span className="text-xl">{`Votes Received: ${votes[winnerIndex]}`}</span>
