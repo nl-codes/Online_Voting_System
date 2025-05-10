@@ -495,7 +495,7 @@ app.get("/view_ongoing_election_brief", async (req, res) => {
         FROM election_candidate ec 
         JOIN election e ON ec.election_id = e.id 
         JOIN candidate c ON ec.candidate_id = c.id 
-        WHERE e.stop_time > NOW() 
+        WHERE e.stop_time > NOW()  AND NOW() > e.start_time AND e.isArchived = 0
         GROUP BY e.id
     `;
 
