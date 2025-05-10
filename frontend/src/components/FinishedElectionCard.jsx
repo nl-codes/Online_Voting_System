@@ -20,6 +20,8 @@ const FinishedElectionCard = ({ electionDetails }) => {
     const sayings = candidate_saying_list.split("|");
     const votes = candidate_vote_list.split("|").map(Number);
 
+    const winnerIndex = votes.indexOf(Math.max(...votes));
+
     const formatDateTime = (dateString) => {
         if (!dateString) return "";
         const date = new Date(dateString);
