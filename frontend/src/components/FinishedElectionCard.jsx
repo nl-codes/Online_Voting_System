@@ -67,10 +67,17 @@ const FinishedElectionCard = ({ electionDetails }) => {
                     </div>
                 </div>
                 {/* Winner */}
-                <div className="flex flex-col">
-                    <span>Winner</span>
-                    <ProfileDisplay image_url={photos[winnerIndex]} />
-                    <span>{names[winnerIndex]}</span>
+                <div className="flex flex-col items-center">
+                    <span className="text-3xl font-bold text-[#c791d4] drop-shadow-2xl  shadow-amber-200 bg-none">
+                        Winner
+                    </span>
+                    <ProfileDisplay
+                        image_url={photos[winnerIndex]}
+                        sizes={{ width: 180, height: 180 }}
+                    />
+                    <span className="font-bold text-3xl ">
+                        {names[winnerIndex]}
+                    </span>
                     <span>{`Votes Received: ${votes[winnerIndex]}`}</span>
                 </div>
             </div>
