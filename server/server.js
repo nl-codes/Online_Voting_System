@@ -443,6 +443,77 @@ app.post(
     }
 );
 
+app.put(
+    "/edit_candidate/:id",
+    uploadCandidate.single("photo_url"),
+    async (req, res) => {
+        const candidateId = req.params.id;
+        try {
+            const { full_name, saying } = req.body;
+
+            // Validate required fields
+            if (!full_name || !saying) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Missing required fields",
+                });
+            }
+
+            // Check if candidate exists
+            const checkSql = "SELECT 1 FROM candidate WHERE id = ?";
+            const [checkResult] = await pool.execute(checkSql, [candidateId]);
+
+            if (checkResult.length === 0) {
+                return res.status(200).json({
+                    success: false,
+                    message: "No candidate found with this ID",
+                });
+            }
+
+            // Build dynamic update query based on provided fields
+            let updateFields = [];
+            let values = [];
+
+            // Always update name and saying
+            updateFields.push("full_name = ?", "saying = ?");
+            values.push(full_name, saying);
+
+            // Add photo if new one is uploaded
+            if (req.file) {
+                updateFields.push("photo_url = ?");
+                values.push(req.file.path);
+            }
+
+            // Add candidate ID at the end for WHERE clause
+            values.push(candidateId);
+
+            const updateSql = `UPDATE candidate SET ${updateFields.join(
+                ", "
+            )} WHERE id = ?`;
+            await pool.execute(updateSql, values);
+
+            // Fetch updated candidate details
+            const [updatedCandidate] = await pool.execute(
+                "SELECT id, full_name, saying, photo_url FROM candidate WHERE id = ?",
+                [candidateId]
+            );
+
+            return res.status(200).json({
+                success: true,
+                message: "Candidate updated successfully",
+                data: updatedCandidate[0],
+            });
+        } catch (err) {
+            console.error("Error updating candidate:", err);
+            return res.status(500).json({
+                success: false,
+                message: "Server error",
+                error: err.message,
+            });
+        }
+    }
+);
+
 // Register Election
 app.post("/election_register", async (req, res) => {
     try {
@@ -1004,6 +1075,43 @@ app.delete("/delete_election/:id", async (req, res) => {
     }
 });
 
+app.get("/single_candidate_details/:id", async (req, res) => {
+    const candidateId = req.params.id;
+
+    if (!candidateId) {
+        return res.status(400).json({
+            success: false,
+            message: "Candidate ID is required",
+        });
+    }
+
+    try {
+        const sql =
+            "SELECT id, full_name, photo_url, saying FROM candidate WHERE id = ?";
+        const [result] = await pool.execute(sql, [candidateId]);
+
+        if (result.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "No candidate found with this ID",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: result[0],
+            message: "Candidate details retrieved successfully",
+        });
+    } catch (error) {
+        console.error("Error fetching candidate details:", error);
+        return res.status(500).json({
+            success: false,
+            message: "Error fetching candidate details",
+            error: error.message,
+        });
+    }
+});
+
 app.get("/get_candidates_all", async (req, res) => {
     const sql = "SELECT id, full_name, photo_url, saying FROM candidate";
 
@@ -1142,13 +1250,141 @@ app.post("/assign_candidate", async (req, res) => {
     }
 
     try {
-        const sql =
-            "INSERT INTO `election_candidate` (`election_id`, `candidate_id`, `votes`) VALUES (?, ?, 0)";
-        const [result] = await pool.execute(sql, [election_id, candidate_id]);
+        // Check if election exists
+        const checkElectionSql = "SELECT 1 FROM election WHERE id = ?";
+        const [electionResult] = await pool.execute(checkElectionSql, [
+            election_id,
+        ]);
+
+        if (electionResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Election doesn't exist",
+            });
+        }
+
+        // Check if candidate exists
+        const checkCandidateSql = "SELECT 1 FROM candidate WHERE id = ?";
+        const [candidateResult] = await pool.execute(checkCandidateSql, [
+            candidate_id,
+        ]);
+
+        if (candidateResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Candidate doesn't exist",
+            });
+        }
+
+        // First delete existing votes for this election
+        const deleteVotesSql = "DELETE FROM votes WHERE election_id = ?";
+        await pool.execute(deleteVotesSql, [election_id]);
+
+        // Then delete existing candidate assignments
+        const deleteAssignmentsSql =
+            "DELETE FROM election_candidate WHERE election_id = ?";
+        await pool.execute(deleteAssignmentsSql, [election_id]);
+
+        // Finally insert new candidate assignment
+        const insertSql =
+            "INSERT INTO election_candidate (election_id, candidate_id, votes) VALUES (?, ?, 0)";
+        await pool.execute(insertSql, [election_id, candidate_id]);
 
         return res.status(201).json({
             success: true,
             message: "Candidate assigned successfully",
+        });
+    } catch (err) {
+        console.error("Error assigning candidate:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error assigning candidate",
+            error: err.message,
+        });
+    }
+});
+
+app.post("/check_if_candidate_assigned", async (req, res) => {
+    const { candidate_id } = req.body;
+
+    if (!candidate_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing required fields",
+        });
+    }
+
+    try {
+        const checkCandidateSql = "SELECT 1 FROM candidate WHERE id = ?";
+        const [checkCandidateResult] = await pool.execute(checkCandidateSql, [
+            candidate_id,
+        ]);
+
+        if (checkCandidateResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Candidate doesn't exist",
+            });
+        }
+
+        const candidateSql =
+            "SELECT election_id FROM election_candidate WHERE candidate_id = ?";
+        const [candidateResult] = await pool.execute(candidateSql, [
+            candidate_id,
+        ]);
+
+        if (candidateResult.length != 0) {
+            return res.status(200).json({
+                success: false,
+                message: `Candidate is assigned to election ${candidateResult[0].election_id}.`,
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Candidates isn't assigned to any election",
+        });
+    } catch (err) {
+        console.error("Error checking candidate assigned:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Error checking candidate assigned",
+            error: err.message,
+        });
+    }
+});
+
+app.post("/unassign_candidates_all", async (req, res) => {
+    const { election_id } = req.body;
+
+    if (!election_id) {
+        return res.status(400).json({
+            success: false,
+            message: "Election ID is required",
+        });
+    }
+
+    try {
+        const electionExistSQL = "SELECT isArchived FROM election WHERE id = ?";
+
+        const electionExistResult = await pool.execute(electionExistSQL, [
+            election_id,
+        ]);
+
+        if (electionExistResult.length === 0) {
+            return res.status(200).json({
+                success: false,
+                message: "Election doesn't exist",
+            });
+        }
+        const deleteSQL = "DELETE FROM votes WHERE election_id = ?";
+        await pool.execute(deleteSQL, [election_id]);
+
+        const sql = "DELETE FROM election_candidate WHERE election_id = ?";
+        await pool.execute(sql, [election_id]);
+
+        return res.status(201).json({
+            success: true,
+            message: `Candidate unassigned of election ${election_id} successfully`,
         });
     } catch (err) {
         console.error("Error assigning candidate:", err);
