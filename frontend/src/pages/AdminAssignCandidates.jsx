@@ -16,7 +16,7 @@ const AdminAssignCandidates = () => {
             try {
                 // Fetch elections
                 const electionRes = await axios.get(
-                    `${API_BASE_URL}/get_future_elections`
+                    `${API_BASE_URL}/get_all_elections`
                 );
                 if (electionRes.data?.success) {
                     setElections(electionRes.data.data || []);
@@ -63,10 +63,11 @@ const AdminAssignCandidates = () => {
     };
 
     const handleAssignCandidates = async () => {
-        if (!selectedElection || selectedCandidates.length === 0) {
+        // Validation check
+        if (!selectedElection || selectedCandidates.length < 2) {
             Swal.fire({
                 title: "Error!",
-                text: "Please select both election and candidates",
+                text: "Please select an election and at least 2 candidates",
                 icon: "error",
                 iconColor: "red",
                 color: "white",
@@ -77,67 +78,125 @@ const AdminAssignCandidates = () => {
         }
 
         try {
-            // Check if candidates are already assigned
-            const response = await axios.post(
-                `${API_BASE_URL}/check_candidates_assigned`,
-                { election_id: selectedElection.id }
-            );
+            // Show confirmation dialog
+            const result = await Swal.fire({
+                title: "Are you sure?",
+                text: "This will remove any existing candidate assignments for this election",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#7d4788",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, assign candidates",
+                background: "#29142e",
+                color: "#ffffff",
+            });
 
-            if (response.data.success) {
-                // Candidates already assigned
-                const assignedCandidates = candidates.filter((candidate) =>
-                    response.data.data.includes(candidate.id)
+            if (result.isConfirmed) {
+                // Use Promise.all to handle multiple requests concurrently
+                const responses = await Promise.all(
+                    selectedCandidates.map((candidate) =>
+                        axios.post(`${API_BASE_URL}/assign_candidate`, {
+                            election_id: selectedElection.id,
+                            candidate_id: candidate.id,
+                        })
+                    )
                 );
 
-                setSelectedCandidates(assignedCandidates);
+                // Check if any request failed
+                const hasError = responses.some(
+                    (response) => !response.data.success
+                );
 
-                Swal.fire({
-                    title: "Info",
-                    text: "Candidates are already assigned to this election",
-                    icon: "info",
-                    iconColor: "#c791d4",
-                    color: "white",
-                    background: "#29142e",
-                    confirmButtonColor: "#7d4788",
-                });
-                return;
+                if (!hasError) {
+                    await Swal.fire({
+                        title: "Success!",
+                        text: "Candidates assigned successfully",
+                        icon: "success",
+                        iconColor: "lightgreen",
+                        color: "white",
+                        background: "#29142e",
+                        confirmButtonColor: "#7d4788",
+                    });
+
+                    // Reset selections after successful assignment
+                    setSelectedElection(null);
+                    setSelectedCandidates([]);
+                    // Refresh the page to update lists
+                    window.location.reload();
+                } else {
+                    throw new Error("Some candidates could not be assigned");
+                }
             }
-
-            // Use Promise.all to handle multiple requests concurrently
-            await Promise.all(
-                selectedCandidates.map((candidate) =>
-                    axios.post(`${API_BASE_URL}/assign_candidate`, {
-                        election_id: selectedElection.id,
-                        candidate_id: candidate.id,
-                    })
-                )
-            );
-
-            Swal.fire({
-                title: "Success!",
-                text: "Candidates assigned successfully",
-                icon: "success",
-                iconColor: "lightgreen",
-                color: "white",
-                background: "#29142e",
-                confirmButtonColor: "green",
-            }).then(() => {
-                // Reset selections after successful assignment
-                setSelectedElection(null);
-                setSelectedCandidates([]);
-                // Optionally refresh the page or fetch updated data
-                window.location.reload();
-            });
         } catch (error) {
             console.error("Error assigning candidates:", error);
             Swal.fire({
                 title: "Error!",
-                text: "Failed to assign candidates. Please try again.",
+                text:
+                    error.message ||
+                    "Failed to assign candidates. Please try again.",
                 icon: "error",
                 iconColor: "red",
                 color: "white",
                 background: "#29142e",
                 confirmButtonColor: "#7d4788",
+            });
+        }
+    };
+    const handleUnAssignCandidates = async () => {
+        try {
+            // Show confirmation dialog
+            const result = await Swal.fire({
+                title: "Are you sure?",
+                text: "This will unassign all candidates from this election!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#7d4788",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, unassign all!",
+                background: "#29142e",
+                color: "#ffffff",
+            });
+
+            if (result.isConfirmed) {
+                // Make API call
+                const response = await axios.post(
+                    `${API_BASE_URL}/unassign_candidates_all`,
+                    {
+                        election_id: selectedElection.id,
+                    }
+                );
+
+                if (response.data.success) {
+                    // Show success message
+                    await Swal.fire({
+                        title: "Unassigned!",
+                        text: "All candidates have been unassigned.",
+                        icon: "success",
+                        iconColor: "lightgreen",
+                        confirmButtonColor: "#7d4788",
+                        background: "#29142e",
+                        color: "#ffffff",
+                    });
+
+                    // Reset selections
+                    setSelectedElection(null);
+                    setSelectedCandidates([]);
+                    // Refresh page to update lists
+                    window.location.reload();
+                } else {
+                    throw new Error(response.data.message);
+                }
+            }
+        } catch (error) {
+            console.error("Error unassigning candidates:", error);
+            Swal.fire({
+                title: "Error!",
+                text: error.message || "Failed to unassign candidates.",
+                icon: "error",
+                iconColor: "red",
+                confirmButtonColor: "#7d4788",
+                background: "#29142e",
+                color: "#ffffff",
             });
         }
     };
@@ -154,9 +213,16 @@ const AdminAssignCandidates = () => {
                     <div className="selected-election mb-4">
                         <p className="font-bold mb-2">Selected Election:</p>
                         {selectedElection ? (
-                            <span className="bg-[#7d4788] px-3 py-1 rounded-md">
-                                {selectedElection.topic}
-                            </span>
+                            <div className="flex items-center gap-4">
+                                <span className="bg-[#7d4788] px-3 py-1 rounded-md">
+                                    {selectedElection.topic}
+                                </span>
+                                <button
+                                    onClick={handleUnAssignCandidates}
+                                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-1 rounded-md transition-colors duration-200 flex items-center gap-2">
+                                    Unassign Candidates
+                                </button>
+                            </div>
                         ) : (
                             <span className="text-gray-400">
                                 No election selected
@@ -189,7 +255,7 @@ const AdminAssignCandidates = () => {
                                     : "hover:bg-[#512C59]"
                             }`}>
                             <span className="text-xl font-bold">
-                                {index + 1}. {election.topic}
+                                {election.id}. {election.topic}
                             </span>
                             <span className="text-sm pl-5">
                                 {election.position}
