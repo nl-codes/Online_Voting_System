@@ -1,4 +1,3 @@
-import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
@@ -22,6 +21,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminEditElectionPage from "./pages/AdminEditElectionPage";
 import PastElectionsResultPage from "./pages/PastElectionsResultPage";
+import AdminEditCandidatePage from "./pages/AdminEditCandidatePage";
 
 const App = () => {
     return (
@@ -75,6 +75,10 @@ const App = () => {
                     <Route
                         path="/sec/admin/create/candidate"
                         element={<AdminCreateCandidatePage />}
+                    />
+                    <Route
+                        path="/sec/admin/edit/candidate/:id"
+                        element={<AdminEditCandidatePage />}
                     />
                     <Route
                         path="/sec/admin/assign/candidate"
