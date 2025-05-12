@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { API_BASE_URL } from "../config/api";
+import Swal from "sweetalert2";
 
 const VoterForm = ({ userId, status, onSubmitSuccess }) => {
     const [formData, setFormData] = useState({
@@ -202,15 +203,39 @@ const VoterForm = ({ userId, status, onSubmitSuccess }) => {
             if (response && response.ok) {
                 const data = await response.json();
                 console.log(data);
-                alert("Voter card registration successful!");
-                onSubmitSuccess(); // Callback to parent to refresh status
+                Swal.fire({
+                    icon: "success",
+                    title: "Submission successful",
+                    text: "You have successfully applied for voter card. Please wait for Admin to approve it.",
+                    background: "#512C59",
+                    color: "#ffffff",
+                }).then((result) => {
+                    if (result.isConfirmed || result.isDismissed) {
+                        onSubmitSuccess(); // Callback to parent to refresh status
+                    }
+                });
             } else {
                 const errorData = await response.json();
-                alert("Failed to register voter card: " + errorData.message);
+                console.error(
+                    "Failed to register voter card: " + errorData.message
+                );
+                Swal.fire({
+                    icon: "error",
+                    title: "Submission failed",
+                    text: "Server Error! Please try again later.",
+                    background: "#512C59",
+                    color: "#ffffff",
+                });
             }
         } catch (error) {
             console.error("Error submitting form:", error);
-            alert("An error occurred while submitting the form.");
+            Swal.fire({
+                icon: "error",
+                title: "Submission failed",
+                text: "Server Error! Please try again later.",
+                background: "#512C59",
+                color: "#ffffff",
+            });
         }
     };
     return (
