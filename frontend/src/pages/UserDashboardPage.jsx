@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ProfileDisplay from "../components/ProfileDisplay.jsx";
 import ElectionCard from "../components/ElectionCard.jsx";
@@ -6,10 +6,14 @@ import UraharaChibi from "../assets/urahara_chibi.jpg";
 import { UserContext } from "../context/UserContext.jsx";
 import UnAuthorized from "../components/UnAuthorized.jsx";
 import { API_BASE_URL } from "../config/api.jsx";
+import axios from "axios";
+import Swal from "sweetalert2";
 
 const UserDashboardPage = () => {
     const { userId, setUserId } = useContext(UserContext);
     const navigate = useNavigate();
+
+    const [isProfileUpdated, setIsProfileUpdated] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem("userId");
@@ -37,14 +41,46 @@ const UserDashboardPage = () => {
                 setError(error.message);
             }
         };
+        const fetchProfile = async () => {
+            try {
+                const response = await axios.get(
+                    `${API_BASE_URL}/user_profile/${userId}`
+                );
+                console.log(response);
+                if (response.status === 200 && response.data.success) {
+                    const data = response.data.data;
+                    console.log(data);
+                    if (
+                        data.photo_url != null &&
+                        data.gender != null &&
+                        data.country != null
+                    ) {
+                        setIsProfileUpdated(true);
+                    }
+                }
+            } catch (error) {
+                console.error("error fetching user profile details: ", error);
+            }
+        };
         fetchElections();
-    }, []);
+        fetchProfile();
+    }, [userId]);
 
     if (!userId) {
         return <UnAuthorized />;
     }
 
     const handleVoterPortal = () => {
+        if (!isProfileUpdated) {
+            Swal.fire({
+                icon: "warning",
+                title: "Profile Incomple",
+                text: "Please complete profile before accessing voter card!",
+                background: "#512C59",
+                color: "#ffffff",
+            });
+            return;
+        }
         navigate(`/voter_card`);
     };
 
