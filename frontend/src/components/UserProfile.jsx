@@ -12,6 +12,16 @@ const UserProfile = ({ userId }) => {
     const [gender, setGender] = useState("Gender");
     const [country, setCountry] = useState("Country Name");
 
+    const handleDateFormat = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+    };
+
     useEffect(() => {
         const fetchUserProfile = async () => {
             try {
@@ -24,7 +34,7 @@ const UserProfile = ({ userId }) => {
                     setFirstName(data.first_name);
                     setLastName(data.last_name);
                     setEmail(data.email);
-                    setDob(data.dob);
+                    setDob(handleDateFormat(data.dob));
                     setPhotoUrl(data.photo_url);
                     setGender(data.gender);
                     setCountry(data.country);
