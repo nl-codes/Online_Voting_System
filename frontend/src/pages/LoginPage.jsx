@@ -13,7 +13,7 @@ const LoginPage = () => {
     // Check if user is already logged in
     useEffect(() => {
         const storedUserId = sessionStorage.getItem("userId");
-        if (storedUserId && !userId) {
+        if (storedUserId) {
             setUserId(storedUserId);
             navigate("/home");
         }
