@@ -1,10 +1,13 @@
 import { useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Overview from "../components/Overview";
 import { API_BASE_URL } from "../config/api";
+import Swal from "sweetalert2";
 
 const SignupPage = () => {
+    const navigate = useNavigate();
+
     const [user, setUser] = useState({
         first_name: "",
         last_name: "",
@@ -138,8 +141,19 @@ const SignupPage = () => {
                     `${API_BASE_URL}/user_register`,
                     user
                 );
+                // Bug fix -167
                 if (response.data.success) {
-                    alert("Registration Successful");
+                    Swal.fire({
+                        icon: "success",
+                        title: "Signup successfull",
+                        text: "You have been successfully registered",
+                        background: "#512C59",
+                        color: "#ffffff",
+                    }).then((result) => {
+                        if (result.isConfirmed || result.isDismissed) {
+                            navigate("/login");
+                        }
+                    });
                     setUser({
                         first_name: "",
                         last_name: "",
@@ -147,7 +161,6 @@ const SignupPage = () => {
                         password: "",
                         dob: "",
                     });
-                    window.location.reload();
                 } else if (response.data.message) {
                     setMessage(response.data.message); // Show error message
                 }
