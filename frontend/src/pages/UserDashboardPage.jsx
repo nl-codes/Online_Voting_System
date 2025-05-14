@@ -93,7 +93,8 @@ const UserDashboardPage = () => {
     };
 
     return (
-        <div className="bg-[#29142e] h-screen max-w-screen">
+        //bug fix - 164
+        <div className="bg-[#29142e] min-h-screen max-w-screen overflow-x-hidden">
             {/* Header */}
             <div className="text-white text-2xl flex items-center justify-between px-20 pt-4">
                 <div className="flex flex-col gap-4 justify-center">
