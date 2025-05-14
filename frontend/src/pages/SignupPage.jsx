@@ -141,7 +141,6 @@ const SignupPage = () => {
                     `${API_BASE_URL}/user_register`,
                     user
                 );
-                // Bug fix -167
                 if (response.data.success) {
                     Swal.fire({
                         icon: "success",
