@@ -66,6 +66,30 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
+// Date Validation Function
+const isValidDate = (dateString) => {
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) return false;
+
+    // Parse the date parts
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    // Check year range (assuming reasonable range between 1900 and current year)
+    const currentYear = new Date().getFullYear();
+    if (year < 1900 || year > currentYear) return false;
+
+    // Check month (1-12)
+    if (month < 1 || month > 12) return false;
+
+    // Check day based on month
+    const daysInMonth = new Date(year, month, 0).getDate();
+    if (day < 1 || day > daysInMonth) return false;
+
+    return true;
+};
+
 // Register user
 app.post("/user_register", async (req, res) => {
     const sql =
