@@ -15,6 +15,15 @@ const PageNotFoundPage = () => {
                         moved.
                     </p>
                 </div>
+
+                <button
+                    onClick={() => navigate(-1)}
+                    className="mt-6 bg-[#c791d4] text-white px-6 py-3 rounded-xl 
+                             font-bold text-xl hover:bg-[#a764b8] 
+                             transition-all duration-300 ease-in-out 
+                             hover:shadow-[0_0_15px_#c791d4]">
+                    Go Back
+                </button>
             </div>
         </div>
     );
