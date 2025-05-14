@@ -66,22 +66,84 @@ app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
 
-// Register user
+// Date validation Function
+const isValidDate = (dateString) => {
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) return false;
+
+    // Parse the date parts
+    const [year, month, day] = dateString.split("-").map(Number);
+
+    // Check year range (assuming reasonable range between 1900 and current year)
+    const currentYear = new Date().getFullYear();
+    if (year < 1900 || year > currentYear) return false;
+
+    // Check month (1-12)
+    if (month < 1 || month > 12) return false;
+
+    // Check day based on month
+    const daysInMonth = new Date(year, month, 0).getDate();
+    if (day < 1 || day > daysInMonth) return false;
+
+    return true;
+};
+
 app.post("/user_register", async (req, res) => {
     const sql =
         "INSERT INTO user_detail (first_name, last_name, email, password_hash, dob) VALUES (?,?,?,?,?)";
 
-    try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+    const firstName = req.body.first_name;
+    const lastName = req.body.last_name;
+    const email = req.body.email;
+    const password = req.body.password;
+    const dob = req.body.dob;
 
-        const values = [
-            req.body.first_name,
-            req.body.last_name,
-            req.body.email,
-            hashedPassword,
-            req.body.dob,
-        ];
-        console.log(values);
+    if (!firstName || !lastName || !email || !password || !dob) {
+        return res.status(400).json({
+            success: false,
+            message:
+                "Missing required fields (firstname, lastname, email, password, dob)",
+        });
+    }
+
+    // Validate date format and reasonableness
+    if (!isValidDate(dob)) {
+        return res.status(400).json({
+            success: false,
+            message: "Invalid date format or unreasonable date",
+        });
+    }
+
+    // Calculate age
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+        age--;
+    }
+
+    // Check if age is reasonable
+    if (age < 18 || age > 120) {
+        return res.status(400).json({
+            success: false,
+            message:
+                age < 18
+                    ? "Must be at least 18 years old to register"
+                    : "Invalid age",
+        });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const values = [firstName, lastName, email, hashedPassword, dob];
+
         const [result] = await pool.execute(sql, values);
 
         return res.status(201).json({
