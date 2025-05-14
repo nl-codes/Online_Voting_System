@@ -71,7 +71,7 @@ const SignupPage = () => {
         const today = new Date();
         const dob = new Date(user.dob);
         const age = today.getFullYear() - dob.getFullYear();
-        if (age < 5) return "You must be at least 5 years old";
+        if (age < 18) return "User must be at least 18 years old";
         return "";
     };
 
