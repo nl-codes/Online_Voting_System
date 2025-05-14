@@ -22,6 +22,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import AdminEditElectionPage from "./pages/AdminEditElectionPage";
 import PastElectionsResultPage from "./pages/PastElectionsResultPage";
 import AdminEditCandidatePage from "./pages/AdminEditCandidatePage";
+import PageNotFoundPage from "./pages/PageNotFoundPage";
 
 const App = () => {
     return (
@@ -102,6 +103,8 @@ const App = () => {
                     />
 
                     <Route path="/signup" element={<SignupPage />} />
+
+                    <Route path="*" element={<PageNotFoundPage />} />
                 </Routes>
             </Router>
         </UserProvider>
