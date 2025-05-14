@@ -15,6 +15,8 @@ const UserDashboardPage = () => {
 
     const [isProfileUpdated, setIsProfileUpdated] = useState(false);
 
+    const [profilePhoto, setProfilePhoto] = useState("");
+
     const handleLogout = () => {
         localStorage.removeItem("userId");
         setUserId(null);
@@ -55,6 +57,7 @@ const UserDashboardPage = () => {
                         data.gender != null &&
                         data.country != null
                     ) {
+                        setProfilePhoto(data.photo_url);
                         setIsProfileUpdated(true);
                     }
                 }
@@ -93,7 +96,6 @@ const UserDashboardPage = () => {
     };
 
     return (
-        //bug fix - 164
         <div className="bg-[#29142e] min-h-screen max-w-screen overflow-x-hidden">
             {/* Header */}
             <div className="text-white text-2xl flex items-center justify-between px-20 pt-4">
@@ -117,7 +119,7 @@ const UserDashboardPage = () => {
                         onClick={handleProfileClick}>
                         <ProfileDisplay
                             className="rounded-full border-4 border-[#29142e]"
-                            image_url={UraharaChibi}
+                            image_url={isProfileUpdated ? profilePhoto : ""}
                         />
                         <span>Profile</span>
                     </div>
