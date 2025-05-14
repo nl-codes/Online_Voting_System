@@ -96,16 +96,51 @@ app.post("/user_register", async (req, res) => {
         "INSERT INTO user_detail (first_name, last_name, email, password_hash, dob) VALUES (?,?,?,?,?)";
 
     try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const { first_name, last_name, email, password, dob } = req.body;
 
-        const values = [
-            req.body.first_name,
-            req.body.last_name,
-            req.body.email,
-            hashedPassword,
-            req.body.dob,
-        ];
-        console.log(values);
+        // Validate required fields
+        if (!first_name || !last_name || !email || !password || !dob) {
+            return res.status(400).json({
+                success: false,
+                message: "Missing required fields",
+            });
+        }
+
+        // Validate date format and reasonableness
+        if (!isValidDate(dob)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid date format or unreasonable date",
+            });
+        }
+
+        // Calculate age
+        const birthDate = new Date(dob);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+
+        if (
+            monthDiff < 0 ||
+            (monthDiff === 0 && today.getDate() < birthDate.getDate())
+        ) {
+            age--;
+        }
+
+        // Check if age is at least 18
+        if (age < 18 || age > 120) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    age < 18
+                        ? "Must be at least 18 years old to register"
+                        : "Invalid age",
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const values = [first_name, last_name, email, hashedPassword, dob];
+
         const [result] = await pool.execute(sql, values);
 
         return res.status(201).json({
