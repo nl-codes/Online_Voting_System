@@ -1,0 +1,128 @@
+-- Database Schema 🧾
+-- Create Database
+
+CREATE DATABASE IF NOT EXISTS online_voting_system;
+USE online_voting_system;
+-- User Table
+CREATE TABLE IF NOT EXISTS user_detail (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    dob DATE NOT NULL,
+    photo_url VARCHAR(255) NULL,
+    gender VARCHAR(10) NULL,
+    country VARCHAR(100) NULL
+);
+-- Voter Card Table with additional fields
+CREATE TABLE IF NOT EXISTS voter_card (
+    voter_id VARCHAR(6) PRIMARY KEY,  -- Unique 6-digit ID
+    citizenship_number VARCHAR(20) UNIQUE NOT NULL,  -- Unique citizenship number
+    phone_number CHAR(10) UNIQUE NOT NULL 
+        CHECK (phone_number REGEXP '^9[78][0-9]{8}$'),  -- Ensures exactly 10 digits starting with 97 or 98
+    citizenship_front_pic VARCHAR(255) NOT NULL,  -- Front side citizenship image URL
+    citizenship_back_pic VARCHAR(255) NOT NULL,  -- Back side citizenship image URL
+    user_id INT NOT NULL,  -- Foreign key referencing user_detail(id)
+    verification_status INT NOT NULL DEFAULT 0 CHECK (verification_status IN (0, 1, 2)),  -- 0 = Pending, 1 = Verified, 2 = Rejected
+    FOREIGN KEY (user_id) REFERENCES user_detail(id) ON DELETE CASCADE
+);
+
+-- Auto-generate 6-digit voter_id on INSERT
+DROP TRIGGER IF EXISTS generate_voter_id;
+DELIMITER //
+CREATE TRIGGER generate_voter_id 
+BEFORE INSERT ON voter_card
+FOR EACH ROW
+BEGIN
+    SET NEW.voter_id = LPAD(FLOOR(RAND() * 1000000), 6, '0'); 
+END;
+//
+DELIMITER ;
+
+
+-- Election Table
+CREATE TABLE IF NOT EXISTS election (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    topic VARCHAR(255) NOT NULL,
+    description TEXT,
+    position VARCHAR(100) NOT NULL,
+    start_time DATETIME NOT NULL,
+    stop_time DATETIME NOT NULL,
+    isArchived BOOLEAN DEFAULT FALSE,
+    CHECK (stop_time > start_time)  -- Ensures stop_time is after start_time
+);
+
+-- Archived Election Table
+CREATE TABLE IF NOT EXISTS archived_elections (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    original_election_id INT NOT NULL,
+   original_topic VARCHAR(255),
+ original_description VARCHAR(255),
+ original_position VARCHAR(255),
+ original_schedule VARCHAR(255),
+ original_candidates VARCHAR(255),
+ original_votes VARCHAR(255),
+archived_at DATETIME DEFAULT CURRENT_TIMESTAMP,    
+    FOREIGN KEY (original_election_id) REFERENCES election(id) ON DELETE CASCADE
+
+);
+
+
+-- Candidate Table
+CREATE TABLE IF NOT EXISTS candidate (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    full_name VARCHAR(100) NOT NULL,
+    photo_url VARCHAR(255) NOT NULL,
+    saying TEXT
+);
+
+-- Election Candidate Table (Links Candidates to Elections)
+CREATE TABLE IF NOT EXISTS election_candidate (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    election_id INT NOT NULL,
+    candidate_id INT NOT NULL,
+    votes INT DEFAULT 0 CHECK (votes >= 0),
+    FOREIGN KEY (election_id) REFERENCES election(id) ON DELETE CASCADE,
+    FOREIGN KEY (candidate_id) REFERENCES candidate(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_election_candidate (election_id, candidate_id)
+);
+
+-- Votes Table (Tracks Votes Using Voter ID Instead of User ID)
+CREATE TABLE IF NOT EXISTS votes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    election_id INT NOT NULL,
+    candidate_id INT NOT NULL,
+    voter_id VARCHAR(6) NOT NULL,
+    FOREIGN KEY (election_id) REFERENCES election(id) ON DELETE CASCADE,
+    FOREIGN KEY (candidate_id) REFERENCES candidate(id) ON DELETE CASCADE,
+    FOREIGN KEY (voter_id) REFERENCES voter_card(voter_id) ON DELETE CASCADE,
+    UNIQUE KEY unique_vote (election_id, voter_id) -- Prevents duplicate voting
+);
+
+
+-- Trigger to Auto-Update Votes Count
+DROP TRIGGER IF EXISTS after_vote_insert;
+DELIMITER //
+CREATE TRIGGER after_vote_insert
+AFTER INSERT ON votes
+FOR EACH ROW
+BEGIN
+    UPDATE election_candidate 
+    SET votes = votes + 1
+    WHERE election_id = NEW.election_id AND candidate_id = NEW.candidate_id;
+END;
+//
+DELIMITER ;
+
+
+-- Reset Password Table
+CREATE TABLE IF NOT EXISTS reset_password (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    reset_token VARCHAR(64) NOT NULL,
+    reset_token_expiry DATETIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user_detail(id)
+);
+
