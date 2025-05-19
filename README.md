@@ -38,14 +38,28 @@ The Online Voting System (OVS) is a web-based application designed to facilitate
    npm install
    ```
 
+3. Set up the database
 
-3. Start the backend development server:
+- Open your MySQL client (e.g., **MySQL Workbench**, **phpMyAdmin**, or **terminal**).
+
+- Navigate to the `sql` folder in the repository. You will find the following two files:
+   - **`db_create_query.txt`** – Contains SQL statements to create the **database**, **tables**, and **triggers**.
+   - **`db_insert_query.txt`** – Contains initial data to **populate the database**.
+
+- Execute the SQL scripts in the following order:
+   - First, run the contents of `db_create_query.txt` to set up the database structure.
+   - Then, run the contents of `db_insert_query.txt` to insert sample or initial data.
+
+
+
+
+4. Start the backend development server:
    ```bash
    cd server
    npm run dev
    ```
 
-4. Start the frontend development server:
+5. Start the frontend development server:
    ```bash
    cd frontend
    npm run dev
