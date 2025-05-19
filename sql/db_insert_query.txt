@@ -1,0 +1,83 @@
+-- USE DATABASE
+USE online_voting_system;
+
+-- Insert 5 anime-themed users
+INSERT INTO user_detail (first_name, last_name, email, password_hash, dob, photo_url, gender, country) VALUES
+('Naruto', 'Uzumaki', 'naruto@anime.com', '$2b$10$2GTP0aVgn8ihrVpMzTUy9.tCWnX0qa5zr.zQD7XK7nALQfhgPucfS', '1999-10-10', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746112439/userProfile_images/naruto.jpg', 'Male', 'Naruto'),
+('Sasuke', 'Uchiha', 'sasuke@anime.com', '$2b$10$5utC1R3tnktPDHq4eQV1OepP.mzfh6dOUgB42YdZfULmBFAbJNHbC', '1999-07-23', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746112439/userProfile_images/sasuke.jpg', 'Male', 'Naruto'),
+('Luffy', 'Monkey', 'luffy@anime.com', '$2b$10$i49b1OqbCAN231r7js7pRebFsbhCWMs0LnjPhRUKv3RRWfFk4YZoK', '2000-05-05', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746112439/userProfile_images/luffy.jpg', 'Male', 'One Piece'),
+('Eren', 'Yeager', 'eren@anime.com', '$2b$10$015zfPN985PlemaFbgKzbuhqDYeap/dxDF5mHgUCz96BeoI0HoYSi', '2000-03-30', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746112439/userProfile_images/eren.jpg', 'Male', 'Attack On Titan'),
+('Tanjiro', 'Kamado', 'tanjiro@anime.com', '$2b$10$ITDxlaKey1swRyaFhjya0.k5X0ldHC7Uu0/MoHnmF2iw70KuOrHo2', '2001-07-14', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746112439/userProfile_images/tanjiro.jpg', 'Male', 'Demon Slayer');
+
+-- Insert 5 voter cards for the 5 users
+INSERT INTO voter_card (citizenship_number, phone_number, citizenship_front_pic, citizenship_back_pic, user_id, verification_status)
+VALUES
+('100000', '9810000001', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/front.png', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/back.png', 1, 1),
+('200000', '9810000002', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/front.png', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/back.png', 2, 1),
+('300000', '9810000003', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/front.png', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/back.png', 3, 1),
+('400000', '9810000004', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/front.png', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/back.png', 4, 1),
+('500000', '9810000005', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/front.png', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746113072/citizenship_images/back.png', 5, 1);
+
+-- Insert 6 elections
+INSERT INTO election (topic, description, position, start_time, stop_time) VALUES
+('Hokage Election', 'Vote for the next Hokage to lead Konoha.', 'Hokage', '2025-05-01 08:00:00', '2025-05-20 20:00:00'),
+('Pirate King Election', 'Who deserves to be the Pirate King?', 'Pirate King', '2025-05-01 08:00:00', '2025-06-01 20:00:00'),
+('Shinigami Captain Poll', 'Choose the next head captain of the Gotei 13.', 'Captain', '2025-04-15 08:00:00', '2025-05-25 20:00:00'),
+('Survey Corps Leadership', 'Who should lead the Survey Corps?', 'Commander', '2025-05-02 08:00:00', '2025-05-25 20:00:00'),
+('Demon Slayer Corps Vote', 'Best demon slayer award.', 'Hashira Leader', '2025-05-01 08:00:00', '2025-05-25 20:00:00'),
+('UA Student President', 'Elect the next UA student council president.', 'President', '2025-05-01 08:00:00', '2025-05-25 20:00:00');
+
+-- Insert 18 anime-inspired candidates
+INSERT INTO candidate (full_name, photo_url, saying) VALUES
+('Shikamaru Nara', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/shikamaru.jpg', '🧠 Too troublesome to lose — vote for strategy, peace, and a better Konoha!'),
+('Boruto Uzumaki', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/boruto.jpg', '⚡ A new age, a new Hokage! I’ll protect the future with everything I’ve got!'),
+('Konohamaru Sarutobi', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/konohamaru.jpg', '🔥 Trained by legends, driven by will — I carry the flame of the Leaf!'),
+('Edward Newgate', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/newgate.jpg', '⚓ The sea is my family! I’ll be the Pirate King who protects every nakama!'),
+('Shanks', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/shanks.jpg', '🍻 A calm sea or a storm — I bring balance, laughs, and a red-haired legacy.'),
+('Loki', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/loki.jpg', '🛡️ The age of giants begins now! Elbaf’s might will lead the seas to glory!'),
+('Kenpachi Zaraki', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/zaraki.jpg', '💥 Tired of peace? Me too. Let’s break limits and have some real fun!'),
+('Byakuya Kuchiki', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/byakuya.jpg', '🌸 Noble. Swift. Unmatched. I lead with dignity and a blade like falling petals.'),
+('Kisuke Urahara', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/urahara.jpg', '🎩 Genius in disguise — gadgets, wit, and charm ready to lead Soul Society.'),
+('Shunsui Kyōraku', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/kyoraku.jpg', '🍶 Peace, sake, and smiles — until it’s time to cut down chaos with grace.'),
+('Levi Ackerman', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/levi.jpg', '🗡️ Silent, deadly, loyal. If humanity’s hope rests on strength — then let’s finish this.'),
+('Mikasa Ackerman', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/mikasa.jpg', '❤️ I fight for love, loyalty, and what’s left of our home.'),
+('Armin Arlert', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/armin.jpg', '📘 A sharp mind in a cruel world — I’ll outthink Titans and lead with heart.'),
+('Gyomei Himejima', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/gyomei.jpg', '🙏 Strength through prayer and tears — I’ll be the calm in every storm.'),
+('Giyu Tomioka', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/giyu.jpg', '🌊 Quiet but unshakable — I protect without hesitation or fear.'),
+('Kyojuro Rengoku', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/rengoku.jpg', '🔥 Set your heart ablaze! I’ll light the path with courage and passion.'),
+('Izuku Midoriya', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/midoriya.jpg', '💚 I wasn’t born a hero — but I’ll become the symbol of hope!'),
+('Katsuki Bakugo', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/bakugo.jpg', '💥 No mercy for evil. I’ll explode my way to victory — and justice!'),
+('Shoto Todoroki', 'https://res.cloudinary.com/duhbs7hqv/image/upload/v1746114511/candidates_images/todoroki.jpg', '❄️🔥 I’m more than my past. I lead with my own flame and frost.');
+
+-- Assign 3 candidates to each of 6 elections
+-- Hokage Election (ID = 1)
+INSERT INTO election_candidate (election_id, candidate_id, votes) VALUES
+(1, 1, 0),  -- Shikamaru Nara
+(1, 2, 0),  -- Boruto Uzumaki
+(1, 3, 0),  -- Konohamaru Sarutobi
+
+-- Pirate King Election (ID = 2)
+(2, 4, 0),  -- Edward Newgate
+(2, 5, 0),  -- Shanks
+(2, 6, 0),  -- Loki
+
+-- Shinigami Captain Poll (ID = 3)
+(3, 7, 0),  -- Kenpachi Zaraki
+(3, 8, 0),  -- Byakuya Kuchiki
+(3, 9, 0),  -- Kisuke Urahara
+(3, 10, 0), -- Shunsui Kyōraku
+
+-- Survey Corps Leadership (ID = 4)
+(4, 11, 0),  -- Levi Ackerman
+(4, 12, 0),  -- Mikasa Ackerman
+(4, 13, 0),  -- Armin Arlert
+
+-- Demon Slayer Corps Vote (ID = 5)
+(5, 14, 0),  -- Gyomei Himejima
+(5, 15, 0),  -- Giyu Tomioka
+(5, 16, 0),  -- Kyojuro Rengoku
+
+-- UA Student President (ID = 6)
+(6, 17, 0),  -- Izuku Midoriya
+(6, 18, 0),  -- Katsuki Bakugo
+(6, 19, 0);  -- Shoto Todoroki
